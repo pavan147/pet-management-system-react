@@ -4,6 +4,22 @@ import React, { useState } from "react";
 const VeterinaryRegistrationForm = () => {
   const [petType, setPetType] = useState("Dog");
   const [otherPetType, setOtherPetType] = useState("");
+  const [email, setEmail] = useState("");
+  const [emailOtp, setEmailOtp] = useState("");
+  const [phone, setPhone] = useState("");
+  const [phoneOtp, setPhoneOtp] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  // Dummy handlers for OTP (replace with real logic as needed)
+  const handleGetEmailOtp = (e) => {
+    e.preventDefault();
+    alert("OTP sent to email (demo)");
+  };
+  const handleGetPhoneOtp = (e) => {
+    e.preventDefault();
+    alert("OTP sent to phone (demo)");
+  };
 
   return (
     <div
@@ -189,21 +205,121 @@ const VeterinaryRegistrationForm = () => {
           <div className="col-2"></div>
         </div>
 
+        {/* Email with OTP */}
         <div className="form-group row mb-2">
           <div className="col-2"></div>
-          <div className="col-8 d-flex align-items-center">
-            <label className="me-2 mb-0" style={{ minWidth: 110 }}>
-              Registration <br />
-              Date
-            </label>
-            <input type="date" className="form-control " required />
+          <div className="col-8">
+            <div className="d-flex align-items-center mb-1">
+              <label className="me-2 mb-0" style={{ minWidth: 110 }}>
+                Email
+              </label>
+              <input
+                type="email"
+                className="form-control me-2"
+                placeholder="Enter email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+              <button
+                className="btn btn-outline-secondary btn-sm"
+                onClick={handleGetEmailOtp}
+              >
+                Get OTP
+              </button>
+            </div>
+            <div className="d-flex align-items-center">
+              <small className="me-2" style={{ minWidth: 110 }}></small>
+              <input
+                type="text"
+                className="form-control w-auto"
+                placeholder="Enter OTP"
+                value={emailOtp}
+                onChange={(e) => setEmailOtp(e.target.value)}
+              />
+            </div>
           </div>
           <div className="col-2"></div>
         </div>
 
-        <div className="form-group row mt-3">
+        {/* Phone Number with OTP */}
+        <div className="form-group row mb-2">
           <div className="col-2"></div>
           <div className="col-8">
+            <div className="d-flex align-items-center mb-1">
+              <label className="me-2 mb-0" style={{ minWidth: 110 }}>
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                className="form-control me-2"
+                placeholder="Enter phone number"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                required
+              />
+              <button
+                className="btn btn-outline-secondary btn-sm"
+                onClick={handleGetPhoneOtp}
+              >
+                Get OTP
+              </button>
+            </div>
+            <div className="d-flex align-items-center">
+              <small className="me-2" style={{ minWidth: 110 }}></small>
+              <input
+                type="text"
+                className="form-control w-auto"
+                placeholder="Enter OTP"
+                value={phoneOtp}
+                onChange={(e) => setPhoneOtp(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="col-2"></div>
+        </div>
+
+        {/* Password */}
+        <div className="form-group row mb-2">
+          <div className="col-2"></div>
+          <div className="col-8 d-flex align-items-center">
+            <label className="me-2 mb-0" style={{ minWidth: 110 }}>
+              Password
+            </label>
+            <input
+              type="password"
+              className="form-control"
+              placeholder="Enter password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          <div className="col-2"></div>
+        </div>
+
+        {/* Confirm Password */}
+        <div className="form-group row mb-2">
+          <div className="col-2"></div>
+          <div className="col-8 d-flex align-items-center">
+            <label className="me-2 mb-0" style={{ minWidth: 110 }}>
+              Confirm Password
+            </label>
+            <input
+              type="password"
+              className="form-control"
+              placeholder="Confirm password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+            />
+          </div>
+          <div className="col-2"></div>
+        </div>        
+
+        <div className="form-group row mt-3">
+          <div className="col-8"></div>
+          <div className="col-2">
             <button type="submit" className="btn btn-primary w-100">
               Register Pet
             </button>
