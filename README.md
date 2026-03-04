@@ -14,3 +14,21 @@ The React Compiler is not enabled on this template because of its impact on dev 
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+---
+
+## Custom Additions
+
+This workspace includes a simple header/footer layout and basic client-side routing.
+
+### Routing setup
+
+1. Install the router dependency:
+	```bash
+	npm install react-router-dom
+	```
+2. Wrap your app with `<BrowserRouter>` in `src/main.jsx` (it was added by default when routing was configured).
+3. Define routes inside `src/App.jsx` using `<Routes>` and `<Route>`.
+4. Navigation links live in `src/components/Header.jsx`.
+
+Feel free to expand with new pages or navigation items as needed.
