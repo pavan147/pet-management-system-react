@@ -270,4 +270,4 @@ const OwnerRegistrationForm = () => {
   );
 };
 
-export default VeterinaryRegistrationForm;
+export default OwnerRegistrationForm;
