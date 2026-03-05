@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const vaccinationOptions = [
   "Rabies",
@@ -13,11 +13,12 @@ const vaccinationOptions = [
 const PetVaccinationRecord = () => {
   const [searchType, setSearchType] = useState("email");
   const [searchValue, setSearchValue] = useState("");
-  const [petName, setPetName] = useState("");
+  const [petList, setPetList] = useState([]); // List of pets after search
+  const [selectedPet, setSelectedPet] = useState(""); // Selected pet name
   const [vaccination, setVaccination] = useState("");
   const [brandAndDoses, setBrandAndDoses] = useState("");
   const [vaccinationDate, setVaccinationDate] = useState(
-    new Date().toISOString().slice(0, 10)
+    new Date().toISOString().slice(0, 10),
   );
   const [weight, setWeight] = useState("");
   const [durationMonths, setDurationMonths] = useState(12);
@@ -25,7 +26,7 @@ const PetVaccinationRecord = () => {
   const [errors, setErrors] = useState({});
 
   // Calculate valid till date whenever vaccinationDate or durationMonths changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (vaccinationDate && durationMonths) {
       const date = new Date(vaccinationDate);
       date.setMonth(date.getMonth() + Number(durationMonths));
@@ -35,29 +36,47 @@ const PetVaccinationRecord = () => {
     }
   }, [vaccinationDate, durationMonths]);
 
-  // Dummy search handler
-  const handleSearch = (e) => {
+  // Mock search handler (replace with real API call)
+  const handleSearch = async (e) => {
     e.preventDefault();
-    alert(
-      `Searching for pet with ${searchType}: ${searchValue}, Pet Name: ${petName} (Demo)`
-    );
-    // Implement actual search logic here
+    setErrors({});
+    setPetList([]);
+    setSelectedPet("");
+    if (!searchValue) {
+      setErrors({ searchValue: "Required" });
+      return;
+    }
+    // Simulate API call
+    // Replace this with your actual fetch logic
+    let pets = [];
+    if (searchValue === "demo@email.com" || searchValue === "1234567890") {
+      pets = ["Tommy", "Kitty", "Tweety"];
+    }
+    if (pets.length === 0) {
+      setErrors({ searchValue: "No pets found for this user." });
+      setPetList([]);
+      setSelectedPet("");
+    } else {
+      setPetList(pets);
+      setSelectedPet(pets[0]);
+    }
   };
 
-  // Dummy submit handler
+  // Submit handler
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Validate fields as needed
     const newErrors = {};
-    if (!searchValue) newErrors.searchValue = "Required";
-    if (!petName) newErrors.petName = "Required";
+    //if (!searchValue) newErrors.searchValue = "Required";
+    //if (!selectedPet) newErrors.selectedPet = "Select a pet";
     if (!vaccination) newErrors.vaccination = "Select vaccination";
     if (!brandAndDoses) newErrors.brandAndDoses = "Required";
     if (!weight) newErrors.weight = "Required";
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
-      alert("Record saved! (Demo)");
+      alert(
+        `Record saved for pet "${selectedPet}"!\nVaccination: ${vaccination}\nBrand & Doses: ${brandAndDoses}\nDate: ${vaccinationDate}\nWeight: ${weight}\nValid Till: ${validTill}`,
+      );
       // Implement actual save logic here
     }
   };
@@ -73,60 +92,86 @@ const PetVaccinationRecord = () => {
       }}
     >
       <form onSubmit={handleSubmit}>
-        <h2 className="mb-3 mt-3 text-center">Pet Vaccination & Deworming Record</h2>
+        <h2 className="mb-3 mt-3 text-center">
+          Pet Vaccination & Deworming Record
+        </h2>
 
         {/* Search Section */}
         <div className="form-group row mb-3">
           <div className="col-2"></div>
-          <div className="col-8 d-flex align-items-center">
-            <label className="me-2 mb-0" style={{ minWidth: 110 }}>
-              Search By
-            </label>
-            <select
-              className="form-select w-auto me-2"
-              value={searchType}
-              onChange={(e) => setSearchType(e.target.value)}
-            >
-              <option value="email">Email</option>
-              <option value="phone">Phone</option>
-            </select>
-            <input
-              type={searchType === "email" ? "email" : "tel"}
-              className={`form-control me-2 ${errors.searchValue ? "is-invalid" : ""}`}
-              placeholder={searchType === "email" ? "Enter email" : "Enter phone"}
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-            />
-            <input
-              type="text"
-              className={`form-control me-2 ${errors.petName ? "is-invalid" : ""}`}
-              placeholder="Pet Name"
-              value={petName}
-              onChange={(e) => setPetName(e.target.value)}
-            />
-            <button className="btn btn-outline-primary" onClick={handleSearch}>
-              Search
-            </button>
+          <div className="col-8">
+            <div className="d-flex align-items-center">
+              <label className="me-2 mb-0" style={{ minWidth: 110 }}>
+                Search By
+              </label>
+              <select
+                className="form-select w-auto me-2"
+                value={searchType}
+                onChange={(e) => {
+                  setSearchType(e.target.value);
+                  setSearchValue("");
+                  setPetList([]);
+                  setSelectedPet("");
+                  setErrors({});
+                }}
+              >
+                <option value="email">Email</option>
+                <option value="phone">Phone</option>
+              </select>
+              <input
+                type={searchType === "email" ? "email" : "tel"}
+                className={`form-control me-2 ${errors.searchValue ? "is-invalid" : ""}`}
+                placeholder={
+                  searchType === "email" ? "Enter email" : "Enter phone"
+                }
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                style={{ maxWidth: 220 }}
+              />
+              {petList.length > 0 && (
+                <select
+                  className={`form-select me-2 ${errors.selectedPet ? "is-invalid" : ""}`}
+                  style={{ minWidth: 120, maxWidth: 200 }}
+                  value={selectedPet}
+                  onChange={(e) => setSelectedPet(e.target.value)}
+                >
+                  <option value="">Select Pet</option>
+                  {petList.map((pet) => (
+                    <option key={pet} value={pet}>
+                      {pet}
+                    </option>
+                  ))}
+                </select>
+              )}
+
+              {!petList.length >= 1 && (
+                <button
+                  className="btn btn-outline-primary"
+                  onClick={handleSearch}
+                >
+                  Search
+                </button>
+              )}
+            </div>
+            {/* Error messages below the row */}
+            {errors.searchValue && (
+              <div className="invalid-feedback d-block">
+                {errors.searchValue}
+              </div>
+            )}
+            {errors.selectedPet && (
+              <div className="invalid-feedback d-block">
+                {errors.selectedPet}
+              </div>
+            )}
           </div>
           <div className="col-2"></div>
         </div>
-        {(errors.searchValue || errors.petName) && (
-          <div className="row mb-2">
-            <div className="col-2"></div>
-            <div className="col-8">
-              {errors.searchValue && (
-                <div className="invalid-feedback d-block">{errors.searchValue}</div>
-              )}
-              {errors.petName && (
-                <div className="invalid-feedback d-block">{errors.petName}</div>
-              )}
-            </div>
-            <div className="col-2"></div>
-          </div>
-        )}
 
         {/* Vaccination Dropdown */}
-        <div className={`form-group row ${errors.vaccination ? "mb-1" : "mb-3"}`}>
+        <div
+          className={`form-group row ${errors.vaccination ? "mb-1" : "mb-3"}`}
+        >
           <div className="col-2"></div>
           <div className="col-8 d-flex align-items-center">
             <label className="me-2 mb-0" style={{ minWidth: 110 }}>
@@ -151,14 +196,18 @@ const PetVaccinationRecord = () => {
           <div className="row mb-2">
             <div className="col-2"></div>
             <div className="col-8">
-              <div className="invalid-feedback d-block">{errors.vaccination}</div>
+              <div className="invalid-feedback d-block">
+                {errors.vaccination}
+              </div>
             </div>
             <div className="col-2"></div>
           </div>
         )}
 
         {/* Brand and Doses */}
-        <div className={`form-group row ${errors.brandAndDoses ? "mb-1" : "mb-3"}`}>
+        <div
+          className={`form-group row ${errors.brandAndDoses ? "mb-1" : "mb-3"}`}
+        >
           <div className="col-2"></div>
           <div className="col-8 d-flex align-items-center">
             <label className="me-2 mb-0" style={{ minWidth: 110 }}>
@@ -178,7 +227,9 @@ const PetVaccinationRecord = () => {
           <div className="row mb-2">
             <div className="col-2"></div>
             <div className="col-8">
-              <div className="invalid-feedback d-block">{errors.brandAndDoses}</div>
+              <div className="invalid-feedback d-block">
+                {errors.brandAndDoses}
+              </div>
             </div>
             <div className="col-2"></div>
           </div>
@@ -198,7 +249,28 @@ const PetVaccinationRecord = () => {
               onChange={(e) => setVaccinationDate(e.target.value)}
               max={new Date().toISOString().slice(0, 10)}
             />
+
+            <div className="col-8 d-flex align-items-center">
+              <label className="me-2 mb-0" style={{ minWidth: 110 }}>
+                Validate Till
+              </label>
+              <input
+                type="number"
+                className="form-control w-auto me-2"
+                value={durationMonths}
+                min="1"
+                max="60"
+                onChange={(e) => setDurationMonths(e.target.value)}
+                style={{ width: 80 }}
+              />
+              <span className="me-2">Month(s)</span>
+              <span>
+                <b>Valid Till:</b>{" "}
+                <span className="badge bg-success">{validTill || "--"}</span>
+              </span>
+            </div>
           </div>
+
           <div className="col-2"></div>
         </div>
 
@@ -211,7 +283,7 @@ const PetVaccinationRecord = () => {
             </label>
             <input
               type="number"
-              className={`form-control w-auto ${errors.weight ? "is-invalid" : ""}`}
+              className={`form-control  ${errors.weight ? "is-invalid" : ""}`}
               placeholder="Enter weight"
               value={weight}
               onChange={(e) => setWeight(e.target.value)}
@@ -230,31 +302,6 @@ const PetVaccinationRecord = () => {
             <div className="col-2"></div>
           </div>
         )}
-
-        {/* Duration and Valid Till */}
-        <div className="form-group row mb-3">
-          <div className="col-2"></div>
-          <div className="col-8 d-flex align-items-center">
-            <label className="me-2 mb-0" style={{ minWidth: 110 }}>
-              Validate Till
-            </label>
-            <input
-              type="number"
-              className="form-control w-auto me-2"
-              value={durationMonths}
-              min="1"
-              max="60"
-              onChange={(e) => setDurationMonths(e.target.value)}
-              style={{ width: 80 }}
-            />
-            <span className="me-2">Month(s)</span>
-            <span>
-              <b>Valid Till:</b>{" "}
-              <span className="badge bg-success">{validTill || "--"}</span>
-            </span>
-          </div>
-          <div className="col-2"></div>
-        </div>
 
         {/* Submit */}
         <div className="form-group row mt-3">
