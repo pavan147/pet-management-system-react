@@ -16,6 +16,7 @@ const VeterinaryRegistrationForm = () => {
   const [breed, setBreed] = useState("");
   const [address, setAddress] = useState("");
   const [registrationDate, setRegistrationDate] = useState("");
+  const [errors, setErrors] = useState({});
 
   // Dummy handlers for OTP (replace with real logic as needed)
   const handleGetEmailOtp = (e) => {
@@ -40,17 +41,20 @@ const VeterinaryRegistrationForm = () => {
       otherPetType,
       breed,
       address,
-      registrationDate
+      registrationDate,
     };
     try {
+      setErrors({}); // Clear previous errors
       const result = await saveRegistration(formData);
       alert("Registration successful! ID: " + result.id);
     } catch (error) {
-      alert("Registration failed: " + error.message);
+      if (error.response && error.response.data) {
+        setErrors(error.response.data); // Set backend validation errors
+      } else {
+        alert("Registration failed: " + error.message);
+      }
     }
   };
-
-
   return (
     <div
       style={{
@@ -76,8 +80,7 @@ const VeterinaryRegistrationForm = () => {
               type="text"
               className="form-control"
               placeholder="Enter owner's name"
-              required
-              onChange={e=>setOwnerName(e.target.value)}
+              onChange={(e) => setOwnerName(e.target.value)}
             />
           </div>
           <div className="col-2"></div>
@@ -93,8 +96,7 @@ const VeterinaryRegistrationForm = () => {
               type="tel"
               className="form-control"
               placeholder="Enter phone number"
-              required 
-              onChange={e=>setPhone(e.target.value)}
+              onChange={(e) => setPhone(e.target.value)}
             />
           </div>
           <div className="col-2"></div>
@@ -110,8 +112,7 @@ const VeterinaryRegistrationForm = () => {
               type="text"
               className="form-control"
               placeholder="Enter pet's name"
-              required
-              onChange={e=>setPetName(e.target.value)}
+              onChange={(e) => setPetName(e.target.value)}
             />
           </div>
           <div className="col-2"></div>
@@ -132,7 +133,7 @@ const VeterinaryRegistrationForm = () => {
                   id="dog"
                   value="Dog"
                   checked={petType === "Dog"}
-                  onChange={e => setPetType(e.target.value)}
+                  onChange={(e) => setPetType(e.target.value)}
                 />
                 <label className="form-check-label" htmlFor="dog">
                   Dog
@@ -146,7 +147,7 @@ const VeterinaryRegistrationForm = () => {
                   id="cat"
                   value="Cat"
                   checked={petType === "Cat"}
-                  onChange={e => setPetType(e.target.value)}
+                  onChange={(e) => setPetType(e.target.value)}
                 />
                 <label className="form-check-label" htmlFor="cat">
                   Cat
@@ -160,7 +161,7 @@ const VeterinaryRegistrationForm = () => {
                   id="bird"
                   value="Bird"
                   checked={petType === "Bird"}
-                  onChange={e => setPetType(e.target.value)}
+                  onChange={(e) => setPetType(e.target.value)}
                 />
                 <label className="form-check-label" htmlFor="bird">
                   Bird
@@ -174,7 +175,7 @@ const VeterinaryRegistrationForm = () => {
                   id="other"
                   value="Other"
                   checked={petType === "Other"}
-                  onChange={e => setPetType(e.target.value)}
+                  onChange={(e) => setPetType(e.target.value)}
                 />
                 <label className="form-check-label" htmlFor="other">
                   Other
@@ -199,7 +200,6 @@ const VeterinaryRegistrationForm = () => {
                 placeholder="Please specify"
                 value={otherPetType}
                 onChange={(e) => setOtherPetType(e.target.value)}
-                required
               />
             </div>
             <div className="col-2"></div>
@@ -216,8 +216,7 @@ const VeterinaryRegistrationForm = () => {
               type="text"
               className="form-control"
               placeholder="Enter breed"
-              required
-              onChange={e=>setBreed(e.target.value)}
+              onChange={(e) => setBreed(e.target.value)}
             />
           </div>
           <div className="col-2"></div>
@@ -233,8 +232,7 @@ const VeterinaryRegistrationForm = () => {
               className="form-control"
               rows="2"
               placeholder="Enter address"
-              required
-              onChange={e=>setAddress(e.target.value)}
+              onChange={(e) => setAddress(e.target.value)}
             />
           </div>
           <div className="col-2"></div>
@@ -254,7 +252,6 @@ const VeterinaryRegistrationForm = () => {
                 placeholder="Enter email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required
               />
               <button
                 className="btn btn-outline-secondary btn-sm"
@@ -291,7 +288,6 @@ const VeterinaryRegistrationForm = () => {
                 placeholder="Enter phone number"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                required
               />
               <button
                 className="btn btn-outline-secondary btn-sm"
@@ -327,7 +323,6 @@ const VeterinaryRegistrationForm = () => {
               placeholder="Enter password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
             />
           </div>
           <div className="col-2"></div>
@@ -346,11 +341,10 @@ const VeterinaryRegistrationForm = () => {
               placeholder="Confirm password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              required
             />
           </div>
           <div className="col-2"></div>
-        </div>        
+        </div>
 
         <div className="form-group row mt-3">
           <div className="col-8"></div>
