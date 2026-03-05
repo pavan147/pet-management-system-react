@@ -30,6 +30,9 @@ const PetRegistrationForm = () => {
   const [petType, setPetType] = useState("");
   const [otherPetType, setOtherPetType] = useState("");
   const [breed, setBreed] = useState("");
+  const [sex, setSex] = useState("");
+  const [color, setColor] = useState("");
+  const [description, setDescription] = useState("");
   const [registrationDate, setRegistrationDate] = useState("");
   const [weight, setWeight] = useState("");
   const [ownerContact, setOwnerContact] = useState("");
@@ -59,6 +62,19 @@ const PetRegistrationForm = () => {
     }
   };
 
+  // Helper to calculate age from DOB string (YYYY-MM-DD)
+const calculateAge = (dob) => {
+  if (!dob) return "";
+  const birthDate = new Date(dob);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age >= 0 ? `${age} yrs` : "";
+};
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!owner) {
@@ -70,6 +86,9 @@ const PetRegistrationForm = () => {
       petType,
       otherPetType: petType === "Other" ? otherPetType : "",
       breed,
+      sex,
+      color,
+      description,
       registrationDate,
       weight,
       ownerContact,
@@ -126,7 +145,6 @@ const PetRegistrationForm = () => {
                 onClick={handleOwnerSearch}
                 disabled={!!owner}
                 type="button"
-
               >
                 Search Owner
               </button>
@@ -142,7 +160,8 @@ const PetRegistrationForm = () => {
                   Change
                 </button>
               )}
-            </div>
+           
+ </div>
             {ownerSearchError && (
               <div className="invalid-feedback d-block mt-1">{ownerSearchError}</div>
             )}
@@ -278,7 +297,6 @@ const PetRegistrationForm = () => {
               <label className="me-2 mb-0" style={{ minWidth: 110 }}>
                 Breed
               </label>
-
               <input
                 type="text"
                 className={`form-control ${errors.breed ? "is-invalid" : ""}`}
@@ -290,6 +308,120 @@ const PetRegistrationForm = () => {
             {errors.breed && (
               <div className="invalid-feedback d-block mt-1">
                 {errors.breed}
+              </div>
+            )}
+          </div>
+          <div className="col-2"></div>
+        </div>
+
+        {/* Sex */}
+        <div className={`form-group row ${errors.sex ? "mb-1" : "mb-3"}`}>
+          <div className="col-2"></div>
+          <div className="col-8">
+            <div className="d-flex align-items-center">
+              <label className="me-2 mb-0" style={{ minWidth: 110 }}>
+                Sex
+              </label>
+              <div>
+                <div className="form-check form-check-inline">
+                  <input
+                    className={`form-check-input ${errors.sex ? "is-invalid" : ""}`}
+                    type="radio"
+                    name="sex"
+                    id="sexMale"
+                    value="Male"
+                    checked={sex === "Male"}
+                    onChange={(e) => setSex(e.target.value)}
+                  />
+                  <label className="form-check-label" htmlFor="sexMale">
+                    Male
+                  </label>
+                </div>
+                <div className="form-check form-check-inline">
+                  <input
+                    className={`form-check-input ${errors.sex ? "is-invalid" : ""}`}
+                    type="radio"
+                    name="
+sex"
+                    id="sexFemale"
+                    value="Female"
+                    checked={sex === "Female"}
+                    onChange={(e) => setSex(e.target.value)}
+                  />
+                  <label className="form-check-label" htmlFor="sexFemale">
+                    Female
+                  </label>
+                </div>
+                <div className="form-check form-check-inline">
+                  <input
+                    className={`form-check-input ${errors.sex ? "is-invalid" : ""}`}
+                    type="radio"
+                    name="sex"
+                    id="sexOther"
+                    value="Other"
+                    checked={sex === "Other"}
+                    onChange={(e) => setSex(e.target.value)}
+                  />
+                  <label className="form-check-label" htmlFor="sexOther">
+                    Other
+                  </label>
+                </div>
+              </div>
+            </div>
+            {errors.sex && (
+              <div className="invalid-feedback d-block mt-1">
+                {errors.sex}
+              </div>
+            )}
+          </div>
+          <div className="col-2"></div>
+        </div>
+
+        {/* Color */}
+        <div className={`form-group row ${errors.color ? "mb-1" : "mb-3"}`}>
+          <div className="col-2"></div>
+          <div className="col-8">
+            <div className="d-flex align-items-center">
+              <label className="me-2 mb-0" style={{ minWidth: 110 }}>
+                Color
+              </label>
+              <input
+                type="text"
+                className={`form-control ${errors.color ? "is-invalid" : ""}`}
+                placeholder="Enter color"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+              />
+            </div>
+            {errors.color && (
+              <div className="invalid-feedback d-block mt-1">
+                {errors.color}
+              </div>
+            )}
+          </div>
+          <div className="col-2"></div>
+        </div>
+
+        {/* Description */}
+        <div className={`form-group row ${errors.description ? "mb-1" : "mb-3"}`}>
+          <div className="col-2"></div>
+          <div className="col-8">
+            <div className="d-flex align-items-center">
+              <label className="me-2 mb-0" style={{ minWidth: 110 }}>
+                Description
+              </label>
+              <textarea
+                className={`form-control ${errors.description ? "is-invalid" : ""}`}
+                placeholder="Enter description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={2}
+                style={{ resize: "vertical" }}
+              />
+            </div>
+            {errors.description && (
+              <div className="invalid-feedback d-block mt-1">
+                {errors.description}
               </div>
             )}
           </div>
@@ -348,6 +480,39 @@ const PetRegistrationForm = () => {
             <div className="col-2"></div>
           </div>
         )}
+
+        {/* Registration Date (DOB) and Age */}
+<div className={`form-group row ${errors.registrationDate ? "mb-1" : "mb-3"}`}>
+  <div className="col-2"></div>
+  <div className="col-8">
+    <div className="d-flex align-items-center">
+      <label className="me-2 mb-0" style={{ minWidth: 110 }}>
+        DOB
+      </label>
+      <input
+        type="date"
+        className={`form-control me-2 ${errors.registrationDate ? "is-invalid" : ""}`}
+        value={registrationDate}
+        onChange={(e) => setRegistrationDate(e.target.value)}
+        style={{ maxWidth: 200 }}
+      />
+      <input
+        type="text"
+        className="form-control"
+        value={registrationDate ? calculateAge(registrationDate) : ""}
+        placeholder="Age"
+        readOnly
+        style={{ maxWidth: 100 }}
+      />
+    </div>
+    {errors.registrationDate && (
+      <div className="invalid-feedback d-block mt-1">
+        {errors.registrationDate}
+      </div>
+    )}
+  </div>
+  <div className="col-2"></div>
+</div>
 
         <div className="form-group row mt-3">
           <div className="col-8"></div>
