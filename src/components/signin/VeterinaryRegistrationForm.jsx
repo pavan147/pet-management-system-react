@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { saveRegistration } from "../../services/VeterinaryRegistrationService";
 // import petBg from "../assets/pet-bg.png"; // Uncomment and update the path if you want a background
 
 const VeterinaryRegistrationForm = () => {
@@ -10,6 +11,11 @@ const VeterinaryRegistrationForm = () => {
   const [phoneOtp, setPhoneOtp] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [ownerName, setOwnerName] = useState("");
+  const [petName, setPetName] = useState("");
+  const [breed, setBreed] = useState("");
+  const [address, setAddress] = useState("");
+  const [registrationDate, setRegistrationDate] = useState("");
 
   // Dummy handlers for OTP (replace with real logic as needed)
   const handleGetEmailOtp = (e) => {
@@ -20,6 +26,30 @@ const VeterinaryRegistrationForm = () => {
     e.preventDefault();
     alert("OTP sent to phone (demo)");
   };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const formData = {
+      ownerName,
+      email,
+      phoneNumber: phone,
+      password,
+      confirmPassword,
+      petName,
+      petType,
+      otherPetType,
+      breed,
+      address,
+      registrationDate
+    };
+    try {
+      const result = await saveRegistration(formData);
+      alert("Registration successful! ID: " + result.id);
+    } catch (error) {
+      alert("Registration failed: " + error.message);
+    }
+  };
+
 
   return (
     <div
@@ -33,7 +63,7 @@ const VeterinaryRegistrationForm = () => {
         position: "relative",
       }}
     >
-      <form>
+      <form onSubmit={handleSubmit}>
         <h2 className="mb-4 text-center">Pet Registration</h2>
 
         <div className="form-group row mb-2">
@@ -47,6 +77,7 @@ const VeterinaryRegistrationForm = () => {
               className="form-control"
               placeholder="Enter owner's name"
               required
+              onChange={e=>setOwnerName(e.target.value)}
             />
           </div>
           <div className="col-2"></div>
@@ -62,7 +93,8 @@ const VeterinaryRegistrationForm = () => {
               type="tel"
               className="form-control"
               placeholder="Enter phone number"
-              required
+              required 
+              onChange={e=>setPhone(e.target.value)}
             />
           </div>
           <div className="col-2"></div>
@@ -79,6 +111,7 @@ const VeterinaryRegistrationForm = () => {
               className="form-control"
               placeholder="Enter pet's name"
               required
+              onChange={e=>setPetName(e.target.value)}
             />
           </div>
           <div className="col-2"></div>
@@ -99,7 +132,7 @@ const VeterinaryRegistrationForm = () => {
                   id="dog"
                   value="Dog"
                   checked={petType === "Dog"}
-                  onChange={() => setPetType("Dog")}
+                  onChange={e => setPetType(e.target.value)}
                 />
                 <label className="form-check-label" htmlFor="dog">
                   Dog
@@ -113,7 +146,7 @@ const VeterinaryRegistrationForm = () => {
                   id="cat"
                   value="Cat"
                   checked={petType === "Cat"}
-                  onChange={() => setPetType("Cat")}
+                  onChange={e => setPetType(e.target.value)}
                 />
                 <label className="form-check-label" htmlFor="cat">
                   Cat
@@ -127,7 +160,7 @@ const VeterinaryRegistrationForm = () => {
                   id="bird"
                   value="Bird"
                   checked={petType === "Bird"}
-                  onChange={() => setPetType("Bird")}
+                  onChange={e => setPetType(e.target.value)}
                 />
                 <label className="form-check-label" htmlFor="bird">
                   Bird
@@ -141,7 +174,7 @@ const VeterinaryRegistrationForm = () => {
                   id="other"
                   value="Other"
                   checked={petType === "Other"}
-                  onChange={() => setPetType("Other")}
+                  onChange={e => setPetType(e.target.value)}
                 />
                 <label className="form-check-label" htmlFor="other">
                   Other
@@ -184,6 +217,7 @@ const VeterinaryRegistrationForm = () => {
               className="form-control"
               placeholder="Enter breed"
               required
+              onChange={e=>setBreed(e.target.value)}
             />
           </div>
           <div className="col-2"></div>
@@ -200,6 +234,7 @@ const VeterinaryRegistrationForm = () => {
               rows="2"
               placeholder="Enter address"
               required
+              onChange={e=>setAddress(e.target.value)}
             />
           </div>
           <div className="col-2"></div>
