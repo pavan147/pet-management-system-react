@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { saveRegistration } from "../../services/VeterinaryRegistrationService";
-// import petBg from "../assets/pet-bg.png"; // Uncomment and update the path if you want a background
+ //import petBg from "..public/bkimg.jpg"; // Uncomment and update the path if you want a background
 
 const VeterinaryRegistrationForm = () => {
   const [petType, setPetType] = useState("Dog");
@@ -58,7 +58,7 @@ const VeterinaryRegistrationForm = () => {
   return (
     <div
       style={{
-        // backgroundImage: `url(${petBg})`,
+         //backgroundImage: `url(${petBg})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         borderRadius: "16px",
@@ -68,7 +68,7 @@ const VeterinaryRegistrationForm = () => {
       }}
     >
       <form onSubmit={handleSubmit}>
-        <h2 className="mb-4 text-center">Pet Registration</h2>
+        <h2 className="mb-3 mt-3 text-center">Pet Registration</h2>
 
         <div className={`form-group row ${errors.ownerName ? "mb-1" : "mb-3"}`}>
           <div className="col-2"></div>
@@ -232,7 +232,7 @@ const VeterinaryRegistrationForm = () => {
                 />
               </div>
               {errors.otherPetType && (
-                <div className="invalid-feedback d-block mt-1">
+                <div className="invalid-feedback d-block mt-1 ms-2">
                   {errors.otherPetType}
                 </div>
               )}

@@ -3,8 +3,9 @@ import { Routes, Route } from "react-router-dom";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
-import Header from "./components/commons/Header";
+import Header from "./components/Commons/Header";
 import VeterinaryRegistrationForm from "./components/signin/VeterinaryRegistrationForm";
+import Footer from "./components/Commons/Footer";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -20,7 +21,7 @@ function App() {
            </Routes>
         </div>
          
- 
+     <Footer/>
     </>
   );
 }
