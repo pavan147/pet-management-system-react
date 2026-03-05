@@ -2,9 +2,7 @@ import React, { useState } from "react";
 import { saveRegistration } from "../../services/VeterinaryRegistrationService";
  //import petBg from "..public/bkimg.jpg"; // Uncomment and update the path if you want a background
 
-const VeterinaryRegistrationForm = () => {
-  const [petType, setPetType] = useState("Dog");
-  const [otherPetType, setOtherPetType] = useState("");
+const OwnerRegistrationForm = () => {
   const [email, setEmail] = useState("");
   const [emailOtp, setEmailOtp] = useState("");
   const [phone, setPhone] = useState("");
@@ -12,10 +10,8 @@ const VeterinaryRegistrationForm = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [ownerName, setOwnerName] = useState("");
-  const [petName, setPetName] = useState("");
-  const [breed, setBreed] = useState("");
   const [address, setAddress] = useState("");
-  const [registrationDate, setRegistrationDate] = useState("");
+
   const [errors, setErrors] = useState({});
 
   // Dummy handlers for OTP (replace with real logic as needed)
@@ -36,12 +32,7 @@ const VeterinaryRegistrationForm = () => {
       phoneNumber: phone,
       password,
       confirmPassword,
-      petName,
-      petType,
-      otherPetType,
-      breed,
-      address,
-      registrationDate,
+      address
     };
     try {
       setErrors({}); // Clear previous errors
@@ -68,7 +59,7 @@ const VeterinaryRegistrationForm = () => {
       }}
     >
       <form onSubmit={handleSubmit}>
-        <h2 className="mb-3 mt-3 text-center">Pet Registration</h2>
+        <h2 className="mb-3 mt-3 text-center">Pet Owner Registration</h2>
 
         <div className={`form-group row ${errors.ownerName ? "mb-1" : "mb-3"}`}>
           <div className="col-2"></div>
@@ -93,176 +84,8 @@ const VeterinaryRegistrationForm = () => {
           <div className="col-2"></div>
         </div>
 
-        <div className={`form-group row ${errors.phoneNumber ? "mb-1" : "mb-3"}`}>
-          <div className="col-2"></div>
-          <div className="col-8">
-            <div className="d-flex align-items-center">
-              <label className="me-2 mb-0" style={{ minWidth: 110 }}>
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                className={`form-control ${errors.phoneNumber ? "is-invalid" : ""}`}
-                placeholder="Enter phone number"
-                onChange={(e) => setPhone(e.target.value)}
-              />
-            </div>
-            {errors.phoneNumber && (
-              <div className="invalid-feedback d-block mt-1">
-                {errors.phoneNumber}
-              </div>
-            )}
-          </div>
-          <div className="col-2"></div>
-        </div>
-
-        <div className={`form-group row ${errors.petName ? "mb-1" : "mb-3"}`}>
-          <div className="col-2"></div>
-          <div className="col-8">
-            <div className="d-flex align-items-center">
-              <label className="me-2 mb-0" style={{ minWidth: 110 }}>
-                Pet Name
-              </label>
-              <input
-                type="text"
-                className={`form-control ${errors.petName ? "is-invalid" : ""}`}
-                placeholder="Enter pet's name"
-                onChange={(e) => setPetName(e.target.value)}
-              />
-            </div>
-            {errors.petName && (
-              <div className="invalid-feedback d-block mt-1">
-                {errors.petName}
-              </div>
-            )}
-          </div>
-          <div className="col-2"></div>
-        </div>
-
-        <div className={`form-group row ${errors.petType ? "mb-1" : "mb-3"}`}>
-          <div className="col-2"></div>
-          <div className="col-8">
-            <div className="d-flex align-items-start">
-              <label className="me-3 mb-0" style={{ minWidth: 110, marginTop: "0.375rem" }}>
-                Pet Type
-              </label>
-              <div className="d-flex flex-wrap">
-                <div className="form-check me-3">
-                  <input
-                    className={`form-check-input ${errors.petType ? "is-invalid" : ""}`}
-                    type="radio"
-                    name="petType"
-                    id="dog"
-                    value="Dog"
-                    checked={petType === "Dog"}
-                    onChange={(e) => setPetType(e.target.value)}
-                  />
-                  <label className="form-check-label" htmlFor="dog">
-                    Dog
-                  </label>
-                </div>
-                <div className="form-check me-3">
-                  <input
-                    className={`form-check-input ${errors.petType ? "is-invalid" : ""}`}
-                    type="radio"
-                    name="petType"
-                    id="cat"
-                    value="Cat"
-                    checked={petType === "Cat"}
-                    onChange={(e) => setPetType(e.target.value)}
-                  />
-                  <label className="form-check-label" htmlFor="cat">
-                    Cat
-                  </label>
-                </div>
-                <div className="form-check me-3">
-                  <input
-                    className={`form-check-input ${errors.petType ? "is-invalid" : ""}`}
-                    type="radio"
-                    name="petType"
-                    id="bird"
-                    value="Bird"
-                    checked={petType === "Bird"}
-                    onChange={(e) => setPetType(e.target.value)}
-                  />
-                  <label className="form-check-label" htmlFor="bird">
-                    Bird
-                  </label>
-                </div>
-                <div className="form-check">
-                  <input
-                    className={`form-check-input ${errors.petType ? "is-invalid" : ""}`}
-                    type="radio"
-                    name="petType"
-                    id="other"
-                    value="Other"
-                    checked={petType === "Other"}
-                    onChange={(e) => setPetType(e.target.value)}
-                  />
-                  <label className="form-check-label" htmlFor="other">
-                    Other
-                  </label>
-                </div>
-              </div>
-            </div>
-            {errors.petType && (
-              <div className="invalid-feedback d-block mt-1">
-                {errors.petType}
-              </div>
-            )}
-          </div>
-          <div className="col-2"></div>
-        </div>
-
-        {/* Show input for Other pet type */}
-        {petType === "Other" && (
-          <div className={`form-group row ${errors.otherPetType ? "mb-1" : "mb-3"}`}>
-            <div className="col-2"></div>
-            <div className="col-8">
-              <div className="d-flex align-items-center">
-                <label className="me-2 mb-0" style={{ minWidth: 110 }}>
-                  Other Pet Type
-                </label>
-                <input
-                  type="text"
-                  className={`form-control ${errors.otherPetType ? "is-invalid" : ""}`}
-                  placeholder="Please specify"
-                  value={otherPetType}
-                  onChange={(e) => setOtherPetType(e.target.value)}
-                />
-              </div>
-              {errors.otherPetType && (
-                <div className="invalid-feedback d-block mt-1 ms-2">
-                  {errors.otherPetType}
-                </div>
-              )}
-            </div>
-            <div className="col-2"></div>
-          </div>
-        )}
-
-        <div className={`form-group row ${errors.breed ? "mb-1" : "mb-3"}`}>
-          <div className="col-2"></div>
-          <div className="col-8">
-            <div className="d-flex align-items-center">
-              <label className="me-2 mb-0" style={{ minWidth: 110 }}>
-                Breed
-              </label>
-              <input
-                type="text"
-                className={`form-control ${errors.breed ? "is-invalid" : ""}`}
-                placeholder="Enter breed"
-                onChange={(e) => setBreed(e.target.value)}
-              />
-            </div>
-            {errors.breed && (
-              <div className="invalid-feedback d-block mt-1">
-                {errors.breed}
-              </div>
-            )}
-          </div>
-          <div className="col-2"></div>
-        </div>
+        
+       
 
         <div className={`form-group row ${errors.address ? "mb-1" : "mb-3"}`}>
           <div className="col-2"></div>
@@ -341,7 +164,7 @@ const VeterinaryRegistrationForm = () => {
           <div className="col-8">
             <div className="d-flex align-items-center mb-2">
               <label className="me-2 mb-0" style={{ minWidth: 110 }}>
-                Phone (OTP)
+                Phone Number
               </label>
               <input
                 type="tel"
