@@ -15,6 +15,9 @@ const searchOwner = async (contact) => {
     return {
       ownerName: owner.ownerName,
       address: owner.address,
+      email: owner.email,
+      phoneNumber: owner.phoneNumber,
+      
     };
   }
   // Not found
@@ -103,15 +106,14 @@ const PetRegistrationForm = () => {
       description,
       dob,
       weight,
-      ownerContact
+      ownerContact,
     };
     try {
       setErrors({});
-       const result = await registerPet(formData);
+      const result = await registerPet(formData);
       if (result) {
-        alert("Pet registered successfully!");  
+        alert("Pet registered successfully!");
       }
-       
     } catch (error) {
       if (error.response && error.response.data) {
         setErrors(error.response.data);
@@ -137,90 +139,95 @@ const PetRegistrationForm = () => {
         <h2 className="mb-3 mt-3 text-center">Pet Registration</h2>
 
         {/* Owner Search */}
-        <div className="form-group row mb-3">
-          <div className="col-2"></div>
-          <div className="col-8">
-            <div className="d-flex align-items-center">
-              <label className="me-2 mb-0" style={{ minWidth: 110 }}>
-                Owner (Phone/Email)
-              </label>
-              <input
-                type="text"
-                className="form-control me-2"
-                placeholder="Enter owner's phone or email"
-                value={ownerContact}
-                onChange={(e) => setOwnerContact(e.target.value)}
-                disabled={!!owner}
-              />
-              <button
-                className="btn btn-outline-secondary btn-sm"
-                onClick={handleOwnerSearch}
-                disabled={!!owner}
-                type="button"
-              >
-                Search Owner
-              </button>
-              {owner && (
+        {!owner && (
+          <div className="form-group row mb-3">
+            <div className="col-2"></div>
+            <div className="col-8">
+              <div className="d-flex align-items-center">
+                <label className="me-2 mb-0" style={{ minWidth: 110 }}>
+                  Owner (Phone/Email)
+                </label>
+                <input
+                  type="text"
+                  className="form-control me-2"
+                  placeholder="Enter owner's phone or email"
+                  value={ownerContact}
+                  onChange={(e) => setOwnerContact(e.target.value)}
+                  disabled={!!owner}
+                />
                 <button
-                  className="btn btn-link btn-sm ms-2"
+                  className="btn btn-outline-secondary btn-sm"
+                  onClick={handleOwnerSearch}
+                  disabled={!!owner}
                   type="button"
-                  onClick={() => {
-                    setOwner(null);
-                    setOwnerContact("");
-                  }}
                 >
-                  Change
+                  Search Owner
                 </button>
+                {owner && (
+                  <button
+                    className="btn btn-link btn-sm ms-2"
+                    type="button"
+                    onClick={() => {
+                      setOwner(null);
+                      setOwnerContact("");
+                    }}
+                  >
+                    Change
+                  </button>
+                )}
+              </div>
+              {ownerSearchError && (
+                <div className="invalid-feedback d-block mt-1">
+                  {ownerSearchError}
+                </div>
               )}
             </div>
-            {ownerSearchError && (
-              <div className="invalid-feedback d-block mt-1">
-                {ownerSearchError}
-              </div>
-            )}
+            <div className="col-2"></div>
           </div>
-          <div className="col-2"></div>
-        </div>
-
-        {/* Owner Info */}
+        )}
+        {/* Owner Info Card */}
         {owner && (
-          <>
-            <div className="form-group row mb-3">
-              <div className="col-2"></div>
-              <div className="col-8">
-                <div className="d-flex align-items-center">
-                  <label className="me-2 mb-0" style={{ minWidth: 110 }}>
-                    Owner Name
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={owner.ownerName}
-                    readOnly
-                    disabled
-                  />
+          <div className="form-group row mb-3">
+            <div className="col-2"></div>
+            <div className="col-8">
+              <div className="card border-success shadow-sm">
+                <div className="card-body">
+                  <h5 className="card-title text-success mb-3">
+                    <i className="bi bi-person-check-fill me-2"></i>
+                    Owner Found
+                  </h5>
+                  <div className="me-2">
+                    <strong>Name:</strong>{" "}
+                    <span className="ms-2">{owner.ownerName}</span>
+                  </div>
+                  <div className="me-2">
+                    <strong>Email:</strong>{" "}
+                    <span className="ms-2">{owner.email}</span>
+                  </div>
+                  <div className="mb-2">
+                    <strong>Phone Number:</strong>{" "}
+                    <span className="ms-2">{owner.phoneNumber}</span>
+                  </div>
+                  <div className="mb-2">
+                    <strong>Address:</strong>{" "}
+                    <span className="ms-2">{owner.address}</span>
+                  </div>
+                  <button
+                    className="btn btn-link btn-sm mt-2 p-0"
+                    type="button"
+                    onClick={() => {
+                      setOwner(null);
+                      setOwnerContact("");
+                    }}
+                  >
+                    <i className="bi bi-arrow-left me-1"></i>
+                    Search another owner
+                  </button>
                 </div>
               </div>
-              <div className="col-2"></div>
             </div>
-            <div className="form-group row mb-3">
-              <div className="col-2"></div>
-              <div className="col-8">
-                <div className="d-flex align-items-center">
-                  <label className="me-2 mb-0" style={{ minWidth: 110 }}>
-                    Address
-                  </label>
-                  <textarea
-                    className="form-control"
-                    value={owner.address}
-                    readOnly
-                    disabled
-                  />
-                </div>
-              </div>
-              <div className="col-2"></div>
-            </div>
-          </>
+            <div className="col-2"></div>
+          </div>
         )}
 
         {/* Pet Name */}
@@ -516,8 +523,8 @@ sex"
                 className={`form-control me-2 ${errors.dob ? "is-invalid" : ""}`}
                 value={dob}
                 onChange={(e) => setdob(e.target.value)}
-                max = {new Date().toISOString().split("T")[0]}
-               style={{ maxWidth: 200 }}
+                max={new Date().toISOString().split("T")[0]}
+                style={{ maxWidth: 200 }}
               />
               {/* <input
                 type="text"
