@@ -6,7 +6,6 @@ import { searchOwnerDetailsByEmailOrPhone } from "../../services/OwnerService";
 
 const PET_TYPE_OPTIONS = ["Dog", "Cat", "Bird", "Other"];
 
- 
 const searchOwner = async (contact) => {
   // Simulate API delay
   const owner = await searchOwnerDetailsByEmailOrPhone(contact);
@@ -14,7 +13,7 @@ const searchOwner = async (contact) => {
   if (owner) {
     return {
       ownerName: owner.ownerName,
-      address: owner.address
+      address: owner.address,
     };
   }
   // Not found
@@ -29,7 +28,7 @@ const PetRegistrationForm = () => {
   const [sex, setSex] = useState("");
   const [color, setColor] = useState("");
   const [description, setDescription] = useState("");
-  const [registrationDate, setRegistrationDate] = useState("");
+  const [dob, setdob] = useState("");
   const [weight, setWeight] = useState("");
   const [ownerContact, setOwnerContact] = useState("");
   const [owner, setOwner] = useState(null);
@@ -58,17 +57,31 @@ const PetRegistrationForm = () => {
     }
   };
 
-  // Helper to calculate age from DOB string (YYYY-MM-DD)
   const calculateAge = (dob) => {
     if (!dob) return "";
     const birthDate = new Date(dob);
     const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
+
+    let years = today.getFullYear() - birthDate.getFullYear();
+    let months = today.getMonth() - birthDate.getMonth();
+    let days = today.getDate() - birthDate.getDate();
+
+    if (days < 0) {
+      months--;
+      // Get days in previous month
+      const prevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+      days += prevMonth.getDate();
     }
-    return age >= 0 ? `${age} yrs` : "";
+
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+
+    // Only show positive age
+    if (years < 0) return "";
+
+    return `${years} yrs, ${months} mos, ${days} days`;
   };
 
   const handleSubmit = async (e) => {
@@ -87,7 +100,7 @@ const PetRegistrationForm = () => {
       sex,
       color,
       description,
-      registrationDate,
+      dob,
       weight,
       ownerContact,
       ownerName: owner.ownerName,
@@ -199,7 +212,7 @@ const PetRegistrationForm = () => {
                   <textarea
                     className="form-control"
                     value={owner.address}
-                    readOnly 
+                    readOnly
                     disabled
                   />
                 </div>
@@ -445,7 +458,7 @@ sex"
               <input
                 type="date"
                 className={`form-control ${errors.registrationDate ? "is-invalid" : ""}`}
-                value={registrationDate}
+                value={dob}
                 onChange={(e) => setRegistrationDate(e.target.value)}
               />
             </div>
@@ -499,25 +512,28 @@ sex"
               </label>
               <input
                 type="date"
-                className={`form-control me-2 ${errors.registrationDate ? "is-invalid" : ""}`}
-                value={registrationDate}
-                onChange={(e) => setRegistrationDate(e.target.value)}
-                style={{ maxWidth: 200 }}
+                className={`form-control me-2 ${errors.dob ? "is-invalid" : ""}`}
+                value={dob}
+                onChange={(e) => setdob(e.target.value)}
+                max = {new Date().toISOString().split("T")[0]}
+               style={{ maxWidth: 200 }}
               />
-              <input
+              {/* <input
                 type="text"
                 className="form-control"
                 value={registrationDate ? calculateAge(registrationDate) : ""}
                 placeholder="Age"
                 readOnly
                 style={{ maxWidth: 100 }}
-              />
+              /> */}
+
+              <span>
+                <b>Age:</b>{" "}
+                <span className="badge bg-success">
+                  {dob ? calculateAge(dob) : "" || "--"}
+                </span>
+              </span>
             </div>
-            {errors.registrationDate && (
-              <div className="invalid-feedback d-block mt-1">
-                {errors.registrationDate}
-              </div>
-            )}
           </div>
           <div className="col-2"></div>
         </div>
