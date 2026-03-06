@@ -3,6 +3,7 @@ import { saveRegistration } from "../../services/VeterinaryRegistrationService";
 import { searchOwnerDetailsByEmailOrPhone } from "../../services/OwnerService";
 //import petBg from "..public/bkimg.jpg"; // Uncomment and update the path if you want a background
 import debounce from "lodash.debounce";
+import SuccessMessage from "../SuccessMessage";
 
 const OwnerRegistrationForm = () => {
   const [email, setEmail] = useState("");
@@ -16,6 +17,7 @@ const OwnerRegistrationForm = () => {
   const [emailExists, setEmailExists] = useState(false);
   const [phoneNumberExists, setPhoneNumberExist] = useState(false);
   const [errors, setErrors] = useState({});
+  const [showSuccess, setShowSuccess] = useState(false);
 
     const checkPhoneNumberAlreadyExists = async (phoneNumber) => {
     try {
@@ -99,7 +101,7 @@ const OwnerRegistrationForm = () => {
     try {
       setErrors({}); // Clear previous errors
       const result = await saveRegistration(formData);
-      alert("Registration successful! ID: " + result.id);
+      setShowSuccess(true);
     } catch (error) {
       if (error.response && error.response.data) {
         setErrors(error.response.data); // Set backend validation errors
@@ -109,6 +111,17 @@ const OwnerRegistrationForm = () => {
     }
   }
   };
+
+  if (showSuccess) {
+    return (
+        <SuccessMessage
+        status="owner"
+        redirectTo="/register"
+        delay={3000} // 3 seconds before redirect
+      />
+      
+    );
+  }
   return (
     <div
       style={{
