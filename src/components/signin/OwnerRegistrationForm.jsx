@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { saveRegistration } from "../../services/VeterinaryRegistrationService";
- //import petBg from "..public/bkimg.jpg"; // Uncomment and update the path if you want a background
+import { searchOwnerDetailsByEmailOrPhone } from "../../services/OwnerService";
+//import petBg from "..public/bkimg.jpg"; // Uncomment and update the path if you want a background
+import debounce from "lodash.debounce";
 
 const OwnerRegistrationForm = () => {
   const [email, setEmail] = useState("");
@@ -11,8 +13,37 @@ const OwnerRegistrationForm = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [ownerName, setOwnerName] = useState("");
   const [address, setAddress] = useState("");
-
+  const [emailExists, setEmailExists] = useState(false);
   const [errors, setErrors] = useState({});
+
+  const checkEmailAlreadyExists = async (email) => {
+    try {
+     
+      const response = await searchOwnerDetailsByEmailOrPhone(email); // Implement this API call in your service
+      return response; // Assuming the API returns { exists: true/false }
+    } catch (error) {
+      console.error("Error checking email:", error);
+      return false; // Default to false on error to allow registration attempt
+    }
+  };
+
+  // Debounced version of the check function
+  const debouncedCheckEmail = useCallback(
+    debounce(async (emailToCheck) => {
+      if (emailToCheck) {
+        const exists = await checkEmailAlreadyExists(emailToCheck);
+        setEmailExists(exists ? true : false);
+      }
+    }, 2000), // 500ms debounce
+    [],
+  );
+
+  // useEffect to trigger check when email changes
+  useEffect(() => {
+    debouncedCheckEmail(email);
+    // Cancel debounce on unmount
+    return debouncedCheckEmail.cancel;
+  }, [email, debouncedCheckEmail]);
 
   // Dummy handlers for OTP (replace with real logic as needed)
   const handleGetEmailOtp = (e) => {
@@ -26,13 +57,14 @@ const OwnerRegistrationForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if(!emailExists) {
     const formData = {
       ownerName,
       email,
       phoneNumber: phone,
       password,
       confirmPassword,
-      address
+      address,
     };
     try {
       setErrors({}); // Clear previous errors
@@ -45,11 +77,12 @@ const OwnerRegistrationForm = () => {
         alert("Registration failed: " + error.message);
       }
     }
+  }
   };
   return (
     <div
       style={{
-         //backgroundImage: `url(${petBg})`,
+        //backgroundImage: `url(${petBg})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         borderRadius: "16px",
@@ -84,14 +117,14 @@ const OwnerRegistrationForm = () => {
           <div className="col-2"></div>
         </div>
 
-        
-       
-
         <div className={`form-group row ${errors.address ? "mb-1" : "mb-3"}`}>
           <div className="col-2"></div>
           <div className="col-8">
             <div className="d-flex align-items-start">
-              <label className="me-2 mb-0" style={{ minWidth: 110, marginTop: "0.375rem" }}>
+              <label
+                className="me-2 mb-0"
+                style={{ minWidth: 110, marginTop: "0.375rem" }}
+              >
                 Address
               </label>
               <textarea
@@ -111,7 +144,9 @@ const OwnerRegistrationForm = () => {
         </div>
 
         {/* Email with OTP */}
-        <div className={`form-group row ${(errors.email || errors.emailOtp) ? "mb-1" : "mb-3"}`}>
+        <div
+          className={`form-group row ${errors.email || errors.emailOtp ? "mb-1" : "mb-3"}`}
+        >
           <div className="col-2"></div>
           <div className="col-8">
             <div className="d-flex align-items-center mb-2">
@@ -137,6 +172,11 @@ const OwnerRegistrationForm = () => {
                 {errors.email}
               </div>
             )}
+            { emailExists && (
+              <div className="invalid-feedback d-block mt-1 ms-2">
+                <p>Email already exists please use a different email.</p>
+              </div>
+            )}
             <div className="d-flex align-items-center mt-2">
               <small className="me-2" style={{ minWidth: 110 }}>
                 Email OTP
@@ -159,7 +199,9 @@ const OwnerRegistrationForm = () => {
         </div>
 
         {/* Phone Number with OTP */}
-        <div className={`form-group row ${(errors.phone || errors.phoneOtp) ? "mb-1" : "mb-3"}`}>
+        <div
+          className={`form-group row ${errors.phone || errors.phoneOtp ? "mb-1" : "mb-3"}`}
+        >
           <div className="col-2"></div>
           <div className="col-8">
             <div className="d-flex align-items-center mb-2">
@@ -180,9 +222,9 @@ const OwnerRegistrationForm = () => {
                 Get OTP
               </button>
             </div>
-            {errors.phone && (
+            {errors.phoneNumber && (
               <div className="invalid-feedback d-block mt-1 ms-2">
-                {errors.phone}
+                {errors.phoneNumber}
               </div>
             )}
             <div className="d-flex align-items-center mt-2">
@@ -232,7 +274,9 @@ const OwnerRegistrationForm = () => {
         </div>
 
         {/* Confirm Password */}
-        <div className={`form-group row ${errors.confirmPassword ? "mb-1" : "mb-3"}`}>
+        <div
+          className={`form-group row ${errors.confirmPassword ? "mb-1" : "mb-3"}`}
+        >
           <div className="col-2"></div>
           <div className="col-8">
             <div className="d-flex align-items-center">
