@@ -14,7 +14,37 @@ const OwnerRegistrationForm = () => {
   const [ownerName, setOwnerName] = useState("");
   const [address, setAddress] = useState("");
   const [emailExists, setEmailExists] = useState(false);
+  const [phoneNumberExists, setPhoneNumberExist] = useState(false);
   const [errors, setErrors] = useState({});
+
+    const checkPhoneNumberAlreadyExists = async (phoneNumber) => {
+    try {
+     
+      const response = await searchOwnerDetailsByEmailOrPhone(phoneNumber); // Implement this API call in your service
+      return response; // Assuming the API returns { exists: true/false }
+    } catch (error) {
+      console.error("Error checking email:", error);
+      return false; // Default to false on error to allow registration attempt
+    }
+  };
+
+  // Debounced version of the check function
+  const debouncedCheckPhoneNumber = useCallback(
+    debounce(async (phoneNumberToCheck) => {
+      if (phoneNumberToCheck) {
+        const exists = await checkPhoneNumberAlreadyExists(phoneNumberToCheck);
+        setPhoneNumberExist(exists ? true : false);
+      }
+    }, 2000), // 500ms debounce
+    [],
+  );
+
+  // useEffect to trigger check when email changes
+  useEffect(() => {
+    debouncedCheckPhoneNumber(phone);
+    // Cancel debounce on unmount
+    return debouncedCheckPhoneNumber.cancel;
+  }, [phone, debouncedCheckPhoneNumber]);
 
   const checkEmailAlreadyExists = async (email) => {
     try {
@@ -225,6 +255,12 @@ const OwnerRegistrationForm = () => {
             {errors.phoneNumber && (
               <div className="invalid-feedback d-block mt-1 ms-2">
                 {errors.phoneNumber}
+              </div>
+            )}
+
+            {phoneNumberExists && (
+              <div className="invalid-feedback d-block mt-1 ms-2">
+                <p>Phone number already exists. Please use a different phone number.</p>
               </div>
             )}
             <div className="d-flex align-items-center mt-2">
