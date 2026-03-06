@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { searchOwnerDetailsByEmailOrPhone } from "../../services/OwnerService";
+import { registerPet } from "../../services/PetService";
 // import { savePetRegistration } from "../../services/PetRegistrationService"; // Uncomment and update if you have a service
 // import { searchOwnerByContact } from "../../services/OwnerService"; // Uncomment and update if you have a service
 // import petBg from "..public/bkimg.jpg"; // Uncomment and update the path if you want a background
@@ -102,15 +103,15 @@ const PetRegistrationForm = () => {
       description,
       dob,
       weight,
-      ownerContact,
-      ownerName: owner.ownerName,
-      ownerAddress: owner.address,
+      ownerContact
     };
     try {
       setErrors({});
-      // const result = await savePetRegistration(formData); // Uncomment if you have a backend
-      // alert("Pet registered successfully! ID: " + result.id);
-      alert("Pet registered successfully! (demo)");
+       const result = await registerPet(formData);
+      if (result) {
+        alert("Pet registered successfully!");  
+      }
+       
     } catch (error) {
       if (error.response && error.response.data) {
         setErrors(error.response.data);
