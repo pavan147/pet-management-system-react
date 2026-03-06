@@ -1,24 +1,20 @@
 import React, { useState } from "react";
+import { searchOwnerDetailsByEmailOrPhone } from "../../services/OwnerService";
 // import { savePetRegistration } from "../../services/PetRegistrationService"; // Uncomment and update if you have a service
 // import { searchOwnerByContact } from "../../services/OwnerService"; // Uncomment and update if you have a service
 // import petBg from "..public/bkimg.jpg"; // Uncomment and update the path if you want a background
 
-const PET_TYPE_OPTIONS = [
-  "Dog",
-  "Cat",
-  "Bird",
-  "Other"
-];
+const PET_TYPE_OPTIONS = ["Dog", "Cat", "Bird", "Other"];
 
-// Dummy search function (replace with real API call)
+ 
 const searchOwner = async (contact) => {
   // Simulate API delay
-  await new Promise((res) => setTimeout(res, 500));
+  const owner = await searchOwnerDetailsByEmailOrPhone(contact);
   // Demo: If contact is "demo@email.com" or "1234567890", return a fake owner
-  if (contact === "demo@email.com" || contact === "1234567890") {
+  if (owner) {
     return {
-      ownerName: "John Doe",
-      address: "123 Main St, Cityville"
+      ownerName: owner.ownerName,
+      address: owner.address
     };
   }
   // Not found
@@ -63,22 +59,24 @@ const PetRegistrationForm = () => {
   };
 
   // Helper to calculate age from DOB string (YYYY-MM-DD)
-const calculateAge = (dob) => {
-  if (!dob) return "";
-  const birthDate = new Date(dob);
-  const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const m = today.getMonth() - birthDate.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-    age--;
-  }
-  return age >= 0 ? `${age} yrs` : "";
-};
+  const calculateAge = (dob) => {
+    if (!dob) return "";
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age >= 0 ? `${age} yrs` : "";
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!owner) {
-      setOwnerSearchError("Please search and select an owner before registering the pet.");
+      setOwnerSearchError(
+        "Please search and select an owner before registering the pet.",
+      );
       return;
     }
     const formData = {
@@ -93,7 +91,7 @@ const calculateAge = (dob) => {
       weight,
       ownerContact,
       ownerName: owner.ownerName,
-      ownerAddress: owner.address
+      ownerAddress: owner.address,
     };
     try {
       setErrors({});
@@ -160,10 +158,11 @@ const calculateAge = (dob) => {
                   Change
                 </button>
               )}
-           
- </div>
+            </div>
             {ownerSearchError && (
-              <div className="invalid-feedback d-block mt-1">{ownerSearchError}</div>
+              <div className="invalid-feedback d-block mt-1">
+                {ownerSearchError}
+              </div>
             )}
           </div>
           <div className="col-2"></div>
@@ -184,6 +183,7 @@ const calculateAge = (dob) => {
                     className="form-control"
                     value={owner.ownerName}
                     readOnly
+                    disabled
                   />
                 </div>
               </div>
@@ -196,11 +196,11 @@ const calculateAge = (dob) => {
                   <label className="me-2 mb-0" style={{ minWidth: 110 }}>
                     Address
                   </label>
-                  <input
-                    type="text"
+                  <textarea
                     className="form-control"
                     value={owner.address}
-                    readOnly
+                    readOnly 
+                    disabled
                   />
                 </div>
               </div>
@@ -249,7 +249,9 @@ const calculateAge = (dob) => {
               >
                 <option value="">Select pet type</option>
                 {PET_TYPE_OPTIONS.map((type) => (
-                  <option key={type} value={type}>{type}</option>
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
                 ))}
               </select>
             </div>
@@ -264,7 +266,9 @@ const calculateAge = (dob) => {
 
         {/* Other Pet Type */}
         {petType === "Other" && (
-          <div className={`form-group row ${errors.otherPetType ? "mb-1" : "mb-3"}`}>
+          <div
+            className={`form-group row ${errors.otherPetType ? "mb-1" : "mb-3"}`}
+          >
             <div className="col-2"></div>
             <div className="col-8">
               <div className="d-flex align-items-center">
@@ -369,9 +373,7 @@ sex"
               </div>
             </div>
             {errors.sex && (
-              <div className="invalid-feedback d-block mt-1">
-                {errors.sex}
-              </div>
+              <div className="invalid-feedback d-block mt-1">{errors.sex}</div>
             )}
           </div>
           <div className="col-2"></div>
@@ -403,7 +405,9 @@ sex"
         </div>
 
         {/* Description */}
-        <div className={`form-group row ${errors.description ? "mb-1" : "mb-3"}`}>
+        <div
+          className={`form-group row ${errors.description ? "mb-1" : "mb-3"}`}
+        >
           <div className="col-2"></div>
           <div className="col-8">
             <div className="d-flex align-items-center">
@@ -429,7 +433,9 @@ sex"
         </div>
 
         {/* Registration Date */}
-        <div className={`form-group row ${errors.registrationDate ? "mb-1" : "mb-3"}`}>
+        <div
+          className={`form-group row ${errors.registrationDate ? "mb-1" : "mb-3"}`}
+        >
           <div className="col-2"></div>
           <div className="col-8">
             <div className="d-flex align-items-center">
@@ -482,42 +488,48 @@ sex"
         )}
 
         {/* Registration Date (DOB) and Age */}
-<div className={`form-group row ${errors.registrationDate ? "mb-1" : "mb-3"}`}>
-  <div className="col-2"></div>
-  <div className="col-8">
-    <div className="d-flex align-items-center">
-      <label className="me-2 mb-0" style={{ minWidth: 110 }}>
-        DOB
-      </label>
-      <input
-        type="date"
-        className={`form-control me-2 ${errors.registrationDate ? "is-invalid" : ""}`}
-        value={registrationDate}
-        onChange={(e) => setRegistrationDate(e.target.value)}
-        style={{ maxWidth: 200 }}
-      />
-      <input
-        type="text"
-        className="form-control"
-        value={registrationDate ? calculateAge(registrationDate) : ""}
-        placeholder="Age"
-        readOnly
-        style={{ maxWidth: 100 }}
-      />
-    </div>
-    {errors.registrationDate && (
-      <div className="invalid-feedback d-block mt-1">
-        {errors.registrationDate}
-      </div>
-    )}
-  </div>
-  <div className="col-2"></div>
-</div>
+        <div
+          className={`form-group row ${errors.registrationDate ? "mb-1" : "mb-3"}`}
+        >
+          <div className="col-2"></div>
+          <div className="col-8">
+            <div className="d-flex align-items-center">
+              <label className="me-2 mb-0" style={{ minWidth: 110 }}>
+                DOB
+              </label>
+              <input
+                type="date"
+                className={`form-control me-2 ${errors.registrationDate ? "is-invalid" : ""}`}
+                value={registrationDate}
+                onChange={(e) => setRegistrationDate(e.target.value)}
+                style={{ maxWidth: 200 }}
+              />
+              <input
+                type="text"
+                className="form-control"
+                value={registrationDate ? calculateAge(registrationDate) : ""}
+                placeholder="Age"
+                readOnly
+                style={{ maxWidth: 100 }}
+              />
+            </div>
+            {errors.registrationDate && (
+              <div className="invalid-feedback d-block mt-1">
+                {errors.registrationDate}
+              </div>
+            )}
+          </div>
+          <div className="col-2"></div>
+        </div>
 
         <div className="form-group row mt-3">
           <div className="col-8"></div>
           <div className="col-2">
-            <button type="submit" className="btn btn-primary w-100" disabled={!owner}>
+            <button
+              type="submit"
+              className="btn btn-primary w-100"
+              disabled={!owner}
+            >
               Register Pet
             </button>
           </div>
