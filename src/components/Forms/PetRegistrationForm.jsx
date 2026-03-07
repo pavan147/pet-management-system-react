@@ -17,7 +17,6 @@ const searchOwner = async (contact) => {
       address: owner.address,
       email: owner.email,
       phoneNumber: owner.phoneNumber,
-      
     };
   }
   // Not found
@@ -339,6 +338,31 @@ const PetRegistrationForm = () => {
           <div className="col-2"></div>
         </div>
 
+        {/* Color */}
+        <div className={`form-group row ${errors.color ? "mb-1" : "mb-3"}`}>
+          <div className="col-2"></div>
+          <div className="col-8">
+            <div className="d-flex align-items-center">
+              <label className="me-2 mb-0" style={{ minWidth: 110 }}>
+                Color
+              </label>
+              <input
+                type="text"
+                className={`form-control ${errors.color ? "is-invalid" : ""}`}
+                placeholder="Enter color"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+              />
+            </div>
+            {errors.color && (
+              <div className="invalid-feedback d-block mt-1">
+                {errors.color}
+              </div>
+            )}
+          </div>
+          <div className="col-2"></div>
+        </div>
+
         {/* Sex */}
         <div className={`form-group row ${errors.sex ? "mb-1" : "mb-3"}`}>
           <div className="col-2"></div>
@@ -395,85 +419,6 @@ sex"
             </div>
             {errors.sex && (
               <div className="invalid-feedback d-block mt-1">{errors.sex}</div>
-            )}
-          </div>
-          <div className="col-2"></div>
-        </div>
-
-        {/* Color */}
-        <div className={`form-group row ${errors.color ? "mb-1" : "mb-3"}`}>
-          <div className="col-2"></div>
-          <div className="col-8">
-            <div className="d-flex align-items-center">
-              <label className="me-2 mb-0" style={{ minWidth: 110 }}>
-                Color
-              </label>
-              <input
-                type="text"
-                className={`form-control ${errors.color ? "is-invalid" : ""}`}
-                placeholder="Enter color"
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-              />
-            </div>
-            {errors.color && (
-              <div className="invalid-feedback d-block mt-1">
-                {errors.color}
-              </div>
-            )}
-          </div>
-          <div className="col-2"></div>
-        </div>
-
-        {/* Description */}
-        <div
-          className={`form-group row ${errors.description ? "mb-1" : "mb-3"}`}
-        >
-          <div className="col-2"></div>
-          <div className="col-8">
-            <div className="d-flex align-items-center">
-              <label className="me-2 mb-0" style={{ minWidth: 110 }}>
-                Description
-              </label>
-              <textarea
-                className={`form-control ${errors.description ? "is-invalid" : ""}`}
-                placeholder="Enter description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={2}
-                style={{ resize: "vertical" }}
-              />
-            </div>
-            {errors.description && (
-              <div className="invalid-feedback d-block mt-1">
-                {errors.description}
-              </div>
-            )}
-          </div>
-          <div className="col-2"></div>
-        </div>
-
-        {/* Registration Date */}
-        <div
-          className={`form-group row ${errors.registrationDate ? "mb-1" : "mb-3"}`}
-        >
-          <div className="col-2"></div>
-          <div className="col-8">
-            <div className="d-flex align-items-center">
-              <label className="me-2 mb-0" style={{ minWidth: 110 }}>
-                DOB
-              </label>
-              <input
-                type="date"
-                className={`form-control ${errors.registrationDate ? "is-invalid" : ""}`}
-                value={dob}
-                onChange={(e) => setRegistrationDate(e.target.value)}
-              />
-            </div>
-            {errors.registrationDate && (
-              <div className="invalid-feedback d-block mt-1">
-                {errors.registrationDate}
-              </div>
             )}
           </div>
           <div className="col-2"></div>
@@ -542,6 +487,34 @@ sex"
                 </span>
               </span>
             </div>
+          </div>
+          <div className="col-2"></div>
+        </div>
+
+        {/* Description */}
+        <div
+          className={`form-group row ${errors.description ? "mb-1" : "mb-3"}`}
+        >
+          <div className="col-2"></div>
+          <div className="col-8">
+            <div className="d-flex align-items-center">
+              <label className="me-2 mb-0" style={{ minWidth: 110 }}>
+                Description
+              </label>
+              <textarea
+                className={`form-control ${errors.description ? "is-invalid" : ""}`}
+                placeholder="Enter description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={2}
+                style={{ resize: "vertical" }}
+              />
+            </div>
+            {errors.description && (
+              <div className="invalid-feedback d-block mt-1">
+                {errors.description}
+              </div>
+            )}
           </div>
           <div className="col-2"></div>
         </div>
