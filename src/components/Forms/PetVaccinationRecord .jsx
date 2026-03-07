@@ -114,6 +114,7 @@ const PetVaccinationRecord = () => {
                   setSelectedPet("");
                   setErrors({});
                 }}
+                disabled={petList.length > 0} // Disable after search
               >
                 <option value="email">Email</option>
                 <option value="phone">Phone</option>
@@ -127,6 +128,7 @@ const PetVaccinationRecord = () => {
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
                 style={{ maxWidth: 220 }}
+                disabled={petList.length > 0} // Disable after search
               />
               {petList.length > 0 && (
                 <select
@@ -144,13 +146,33 @@ const PetVaccinationRecord = () => {
                 </select>
               )}
 
-              {!petList.length >= 1 && (
+              {petList.length === 0 ? (
                 <button
                   className="btn btn-outline-primary"
                   onClick={handleSearch}
                 >
                   Search
                 </button>
+              ) : (
+                <a
+                  href="#"
+                  className="ms-2"
+                  style={{
+                    textDecoration: "underline",
+                    cursor: "pointer",
+                    color: "#0d6efd",
+                  }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setSearchType("email");
+                    setSearchValue("");
+                    setPetList([]);
+                    setSelectedPet("");
+                    setErrors({});
+                  }}
+                >
+                  Search Again
+                </a>
               )}
             </div>
             {/* Error messages below the row */}
