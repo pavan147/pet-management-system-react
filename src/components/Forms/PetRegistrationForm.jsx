@@ -1,16 +1,11 @@
 import React, { useState } from "react";
 import { searchOwnerDetailsByEmailOrPhone } from "../../services/OwnerService";
 import { registerPet } from "../../services/PetService";
-// import { savePetRegistration } from "../../services/PetRegistrationService"; // Uncomment and update if you have a service
-// import { searchOwnerByContact } from "../../services/OwnerService"; // Uncomment and update if you have a service
-// import petBg from "..public/bkimg.jpg"; // Uncomment and update the path if you want a background
 
 const PET_TYPE_OPTIONS = ["Dog", "Cat", "Bird", "Other"];
 
 const searchOwner = async (contact) => {
-  // Simulate API delay
   const owner = await searchOwnerDetailsByEmailOrPhone(contact);
-  // Demo: If contact is "demo@email.com" or "1234567890", return a fake owner
   if (owner) {
     return {
       ownerName: owner.ownerName,
@@ -19,7 +14,6 @@ const searchOwner = async (contact) => {
       phoneNumber: owner.phoneNumber,
     };
   }
-  // Not found
   return null;
 };
 
@@ -37,6 +31,8 @@ const PetRegistrationForm = () => {
   const [owner, setOwner] = useState(null);
   const [ownerSearchError, setOwnerSearchError] = useState("");
   const [errors, setErrors] = useState({});
+  const [petPhoto, setPetPhoto] = useState(null);
+  const [petPhotoPreview, setPetPhotoPreview] = useState(null);
 
   const handleOwnerSearch = async (e) => {
     e.preventDefault();
@@ -47,8 +43,7 @@ const PetRegistrationForm = () => {
       return;
     }
     try {
-      // const foundOwner = await searchOwnerByContact(ownerContact); // Use your real service here
-      const foundOwner = await searchOwner(ownerContact); // Demo
+      const foundOwner = await searchOwner(ownerContact);
       if (foundOwner) {
         setOwner(foundOwner);
         setOwnerSearchError("");
@@ -71,7 +66,6 @@ const PetRegistrationForm = () => {
 
     if (days < 0) {
       months--;
-      // Get days in previous month
       const prevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
       days += prevMonth.getDate();
     }
@@ -81,7 +75,6 @@ const PetRegistrationForm = () => {
       months += 12;
     }
 
-    // Only show positive age
     if (years < 0) return "";
 
     return `${years} yrs, ${months} mos, ${days} days`;
@@ -95,7 +88,7 @@ const PetRegistrationForm = () => {
       );
       return;
     }
-    const formData = {
+    const petRegistrationDto = {
       petName,
       petType,
       otherPetType: petType === "Other" ? otherPetType : "",
@@ -109,9 +102,10 @@ const PetRegistrationForm = () => {
     };
     try {
       setErrors({});
-      const result = await registerPet(formData);
+      const result = await registerPet(petRegistrationDto, petPhoto); // Pass photo!
       if (result) {
         alert("Pet registered successfully!");
+        // Optionally reset form here
       }
     } catch (error) {
       if (error.response && error.response.data) {
@@ -125,7 +119,6 @@ const PetRegistrationForm = () => {
   return (
     <div
       style={{
-        // backgroundImage: `url(${petBg})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         borderRadius: "16px",
@@ -184,6 +177,7 @@ const PetRegistrationForm = () => {
             <div className="col-2"></div>
           </div>
         )}
+
         {/* Owner Info Card */}
         {owner && (
           <div className="form-group row mb-3">
@@ -390,8 +384,7 @@ const PetRegistrationForm = () => {
                   <input
                     className={`form-check-input ${errors.sex ? "is-invalid" : ""}`}
                     type="radio"
-                    name="
-sex"
+                    name="sex"
                     id="sexFemale"
                     value="Female"
                     checked={sex === "Female"}
@@ -471,15 +464,6 @@ sex"
                 max={new Date().toISOString().split("T")[0]}
                 style={{ maxWidth: 200 }}
               />
-              {/* <input
-                type="text"
-                className="form-control"
-                value={registrationDate ? calculateAge(registrationDate) : ""}
-                placeholder="Age"
-                readOnly
-                style={{ maxWidth: 100 }}
-              /> */}
-
               <span>
                 <b>Age:</b>{" "}
                 <span className="badge bg-success">
@@ -513,6 +497,47 @@ sex"
             {errors.description && (
               <div className="invalid-feedback d-block mt-1">
                 {errors.description}
+              </div>
+            )}
+          </div>
+          <div className="col-2"></div>
+        </div>
+
+        {/* Pet Photo */}
+        <div className={`form-group row ${errors.petPhoto ? "mb-1" : "mb-3"}`}>
+          <div className="col-2"></div>
+          <div className="col-8">
+            <div className="d-flex align-items-center">
+              <label className="me-2 mb-0" style={{ minWidth: 110 }}>
+                Pet Photo
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                className={`form-control ${errors.petPhoto ? "is-invalid" : ""}`}
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  setPetPhoto(file);
+                  setPetPhotoPreview(file ? URL.createObjectURL(file) : null);
+                }}
+              />
+            </div>
+            {petPhotoPreview && (
+              <div className="mt-2">
+                <img
+                  src={petPhotoPreview}
+                  alt="Pet Preview"
+                  style={{
+                    maxWidth: "150px",
+                    maxHeight: "150px",
+                    borderRadius: "8px",
+                  }}
+                />
+              </div>
+            )}
+            {errors.petPhoto && (
+              <div className="invalid-feedback d-block mt-1">
+                {errors.petPhoto}
               </div>
             )}
           </div>
