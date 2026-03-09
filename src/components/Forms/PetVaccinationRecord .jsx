@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { searchOwnerDetailsByEmailOrPhone } from "../../services/OwnerService";
+import { saveVaccinationRecord } from "../../services/PetService";
 
 const vaccinationOptions = [
   "Rabies",
@@ -26,6 +27,7 @@ const PetVaccinationRecord = () => {
   const [validTill, setValidTill] = useState("");
   const [errors, setErrors] = useState({});
   const [vaccineName, setVaccineName] = useState("");
+ 
 
   // Calculate valid till date whenever vaccinationDate or durationMonths changes
   useEffect(() => {
@@ -71,18 +73,26 @@ const PetVaccinationRecord = () => {
 
   // Submit handler
   const handleSubmit = (e) => {
+    try { 
     e.preventDefault();
     const newErrors = {};
+    const formData = {
+      petId: selectedPet,
+      ownerContact: searchValue,
+      vaccination,
+      vaccineName,
+      brandAndDoses,
+      durationMonths,
+      vaccinationDate,
+      weight,
+      validTill,
+    };
+  saveVaccinationRecord(formData);
+    } catch (error) { 
+    setErrors(newErrors)
 
-    setErrors(newErrors);
-
-    if (Object.keys(newErrors).length === 0) {
-      alert(
-        `Record saved for pet "${selectedPet}"!\nVaccination: ${vaccination}\nBrand & Doses: ${brandAndDoses}\nDate: ${vaccinationDate}\nWeight: ${weight}\nValid Till: ${validTill}`,
-      );
-      // Implement actual save logic here
     }
-  };
+    };
 
   return (
     <div

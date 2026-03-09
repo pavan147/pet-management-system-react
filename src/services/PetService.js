@@ -28,3 +28,14 @@ export const registerPet = async (petRegistrationDto, petPhoto) => {
     throw error;
   }
 };
+
+
+
+// Service function to save registration
+export const saveVaccinationRecord = async (formData) => {
+  const response = await axios.post(
+  BASE_URL + "/vaccination-record",  formData,
+    { headers: { "Content-Type": "application/json" } }
+  );
+  return response.data;
+};
