@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { searchOwnerDetailsByEmailOrPhone } from "../../services/OwnerService";
 
 const vaccinationOptions = [
   "Rabies",
@@ -24,6 +25,7 @@ const PetVaccinationRecord = () => {
   const [durationMonths, setDurationMonths] = useState(12);
   const [validTill, setValidTill] = useState("");
   const [errors, setErrors] = useState({});
+  const [vaccineName, setVaccineName] = useState("");
 
   // Calculate valid till date whenever vaccinationDate or durationMonths changes
   useEffect(() => {
@@ -43,14 +45,19 @@ const PetVaccinationRecord = () => {
     setPetList([]);
     setSelectedPet("");
     if (!searchValue) {
-      setErrors({ searchValue: "Required" });
+      setErrors({ searchValue: "Email or Phone Number is Required" });
       return;
     }
+
+    const owner = await searchOwnerDetailsByEmailOrPhone(searchValue);
     // Simulate API call
     // Replace this with your actual fetch logic
     let pets = [];
-    if (searchValue === "demo@email.com" || searchValue === "1234567890") {
-      pets = ["Tommy", "Kitty", "Tweety"];
+    if (owner && owner.pets) {
+      pets = owner.pets.map((pet) => ({
+        petNameFound: pet.petName,
+        petIDFound: pet.id,
+      }));
     }
     if (pets.length === 0) {
       setErrors({ searchValue: "No pets found for this user." });
@@ -66,11 +73,7 @@ const PetVaccinationRecord = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const newErrors = {};
-    //if (!searchValue) newErrors.searchValue = "Required";
-    //if (!selectedPet) newErrors.selectedPet = "Select a pet";
-    if (!vaccination) newErrors.vaccination = "Select vaccination";
-    if (!brandAndDoses) newErrors.brandAndDoses = "Required";
-    if (!weight) newErrors.weight = "Required";
+
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
@@ -139,8 +142,8 @@ const PetVaccinationRecord = () => {
                 >
                   <option value="">Select Pet</option>
                   {petList.map((pet) => (
-                    <option key={pet} value={pet}>
-                      {pet}
+                    <option key={pet} value={pet.petIDFound}>
+                      {pet.petNameFound}
                     </option>
                   ))}
                 </select>
@@ -226,14 +229,45 @@ const PetVaccinationRecord = () => {
           </div>
         )}
 
-        {/* Brand and Doses */}
+        {/* VaccinationBrand text field */}
+        <div
+          className={`form-group row ${errors.vaccineName ? "mb-1" : "mb-3"}`}
+        >
+          <div className="col-2"></div>
+          <div className="col-8 d-flex align-items-center">
+            <label className="me-2 mb-0" style={{ minWidth: 110 }}>
+              Vaccination Brand
+            </label>
+            <input
+              type="text"
+              className={`form-control ${errors.vaccineName ? "is-invalid" : ""}`}
+              value={vaccineName}
+              onChange={(e) => setVaccineName(e.target.value)}
+              placeholder="Enter brand"
+            />
+          </div>
+          <div className="col-2"></div>
+        </div>
+        {errors.vaccineName && (
+          <div className="row mb-2">
+            <div className="col-2"></div>
+            <div className="col-8">
+              <div className="invalid-feedback d-block">
+                {errors.vaccineName}
+              </div>
+            </div>
+            <div className="col-2"></div>
+          </div>
+        )}
+
+        {/*   Doses */}
         <div
           className={`form-group row ${errors.brandAndDoses ? "mb-1" : "mb-3"}`}
         >
           <div className="col-2"></div>
           <div className="col-8 d-flex align-items-center">
             <label className="me-2 mb-0" style={{ minWidth: 110 }}>
-              Brand & Doses
+              Doses
             </label>
             <textarea
               className={`form-control ${errors.brandAndDoses ? "is-invalid" : ""}`}
@@ -274,7 +308,7 @@ const PetVaccinationRecord = () => {
 
             <div className="col-8 d-flex align-items-center">
               <label className="me-2 mb-0" style={{ minWidth: 110 }}>
-                Validate Till
+                Validate Till <span className="me-2">Month(s)</span>
               </label>
               <input
                 type="number"
@@ -285,7 +319,6 @@ const PetVaccinationRecord = () => {
                 onChange={(e) => setDurationMonths(e.target.value)}
                 style={{ width: 80 }}
               />
-              <span className="me-2">Month(s)</span>
               <span>
                 <b>Valid Till:</b>{" "}
                 <span className="badge bg-success">{validTill || "--"}</span>
