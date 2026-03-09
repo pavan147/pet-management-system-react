@@ -72,10 +72,11 @@ const PetVaccinationRecord = () => {
   };
 
   // Submit handler
-  const handleSubmit = (e) => {
+  const handleSubmit = async  (e) => {
+    let response = {};
     try { 
     e.preventDefault();
-    const newErrors = {};
+    setErrors({});
     const formData = {
       petId: selectedPet,
       ownerContact: searchValue,
@@ -87,10 +88,9 @@ const PetVaccinationRecord = () => {
       weight,
       validTill,
     };
-  saveVaccinationRecord(formData);
+   response = await saveVaccinationRecord(formData);
     } catch (error) { 
-    setErrors(newErrors)
-
+    setErrors(error.response.data);
     }
     };
 
@@ -205,7 +205,7 @@ const PetVaccinationRecord = () => {
 
         {/* Vaccination Dropdown */}
         <div
-          className={`form-group row ${errors.vaccination ? "mb-1" : "mb-3"}`}
+          className={`form-group row ${errors.vaccination ? "mb-0" : "mb-3"}`}
         >
           <div className="col-2"></div>
           <div className="col-8 d-flex align-items-center">
@@ -228,7 +228,7 @@ const PetVaccinationRecord = () => {
           <div className="col-2"></div>
         </div>
         {errors.vaccination && (
-          <div className="row mb-2">
+          <div className="row mb-0">
             <div className="col-2"></div>
             <div className="col-8">
               <div className="invalid-feedback d-block">
@@ -241,7 +241,7 @@ const PetVaccinationRecord = () => {
 
         {/* VaccinationBrand text field */}
         <div
-          className={`form-group row ${errors.vaccineName ? "mb-1" : "mb-3"}`}
+          className={`form-group row ${errors.vaccineName ? "mb-0" : "mb-3"}`}
         >
           <div className="col-2"></div>
           <div className="col-8 d-flex align-items-center">
@@ -259,7 +259,7 @@ const PetVaccinationRecord = () => {
           <div className="col-2"></div>
         </div>
         {errors.vaccineName && (
-          <div className="row mb-2">
+          <div className="row mb-0">
             <div className="col-2"></div>
             <div className="col-8">
               <div className="invalid-feedback d-block">
@@ -272,7 +272,7 @@ const PetVaccinationRecord = () => {
 
         {/*   Doses */}
         <div
-          className={`form-group row ${errors.brandAndDoses ? "mb-1" : "mb-3"}`}
+          className={`form-group row ${errors.brandAndDoses ? "mb-0" : "mb-3"}`}
         >
           <div className="col-2"></div>
           <div className="col-8 d-flex align-items-center">
@@ -290,7 +290,7 @@ const PetVaccinationRecord = () => {
           <div className="col-2"></div>
         </div>
         {errors.brandAndDoses && (
-          <div className="row mb-2">
+          <div className="row mb-0">
             <div className="col-2"></div>
             <div className="col-8">
               <div className="invalid-feedback d-block">
@@ -310,7 +310,7 @@ const PetVaccinationRecord = () => {
             </label>
             <input
               type="date"
-              className="form-control w-auto"
+               className={`form-control ${errors.vaccinationDate ? "is-invalid" : ""}`}
               value={vaccinationDate}
               onChange={(e) => setVaccinationDate(e.target.value)}
               max={new Date().toISOString().slice(0, 10)}
@@ -321,8 +321,8 @@ const PetVaccinationRecord = () => {
                 Validate Till <span className="me-2">Month(s)</span>
               </label>
               <input
-                type="number"
-                className="form-control w-auto me-2"
+                type="number"               
+                className={`form-control w-auto me-2 ${errors.vaccinationDate ? "is-invalid w-auto me-2" : ""}`}
                 value={durationMonths}
                 min="1"
                 max="60"
@@ -338,6 +338,26 @@ const PetVaccinationRecord = () => {
 
           <div className="col-2"></div>
         </div>
+
+        {errors.vaccinationDate && (
+          <div className="row mb-2">
+            <div className="col-2"></div>
+            <div className="col-8">
+              <div className="invalid-feedback d-block">{errors.vaccinationDate}</div>
+            </div>
+            <div className="col-2"></div>
+          </div>
+        )}
+
+        {errors.durationMonths && (
+          <div className="row mb-2">
+            <div className="col-2"></div>
+            <div className="col-8">
+              <div className="invalid-feedback d-block">{errors.durationMonths}</div>
+            </div>
+            <div className="col-2"></div>
+          </div>
+        )}
 
         {/* Weight */}
         <div className={`form-group row ${errors.weight ? "mb-1" : "mb-3"}`}>
