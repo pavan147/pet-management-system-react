@@ -1,164 +1,126 @@
 import React, { useState } from "react";
+import { searchOwnerDetailsByEmailOrPhone } from "../../services/OwnerService";
+import { registerPet } from "../../services/PetService";
 
-const MOCK_OWNERS = [
-  {
-    id: "owner1",
-    ownerName: "John Doe",
-    address: "123 Main St, City",
-    email: "john@example.com",
-    phoneNumber: "1234567890",
-    pets: [
-      {
-        id: "pet1",
-        petName: "Buddy",
-        species: "Dog",
-        breed: "Golden Retriever",
-        age: 5,
-      },
-      {
-        id: "pet2",
-        petName: "Mittens",
-        species: "Cat",
-        breed: "Siamese",
-        age: 3,
-      },
-    ],
-  },
-  {
-    id: "owner2",
-    ownerName: "Jane Smith",
-    address: "456 Oak Ave, Town",
-    email: "jane@example.com",
-    phoneNumber: "0987654321",
-    pets: [
-      {
-        id: "pet3",
-        petName: "Max",
-        species: "Dog",
-        breed: "Bulldog",
-        age: 2,
-      },
-    ],
-  },
-];
+const PET_TYPE_OPTIONS = ["Dog", "Cat", "Bird", "Other"];
 
-const TIME_OPTIONS = [
-  { label: "Morning", value: "morning" },
-  { label: "Afternoon", value: "afternoon" },
-  { label: "Evening", value: "evening" },
-  { label: "Night", value: "night" },
-];
+const searchOwner = async (contact) => {
+  const owner = await searchOwnerDetailsByEmailOrPhone(contact);
+  if (owner) {
+    return {
+      ownerName: owner.ownerName,
+      address: owner.address,
+      email: owner.email,
+      phoneNumber: owner.phoneNumber,
+    };
+  }
+  return null;
+};
 
-const PetMedicalHistoryForm = () => {
-  const [searchType, setSearchType] = useState("email");
-  const [searchValue, setSearchValue] = useState("");
+const PetRegistrationForm = () => {
+  const [petName, setPetName] = useState("");
+  const [petType, setPetType] = useState("");
+  const [otherPetType, setOtherPetType] = useState("");
+  const [breed, setBreed] = useState("");
+  const [sex, setSex] = useState("");
+  const [color, setColor] = useState("");
+  const [description, setDescription] = useState("");
+  const [dob, setdob] = useState("");
+  const [weight, setWeight] = useState("");
+  const [ownerContact, setOwnerContact] = useState("");
   const [owner, setOwner] = useState(null);
-  const [petList, setPetList] = useState([]);
-  const [selectedPet, setSelectedPet] = useState("");
-  const [petInfo, setPetInfo] = useState(null);
-
-  const [diagnosis, setDiagnosis] = useState("");
-  const [prescriptions, setPrescriptions] = useState([
-    { medicine: "", dosage: "", frequency: "", duration: "", instructions: "", times: [] },
-  ]);
-  const [treatmentSuggestions, setTreatmentSuggestions] = useState("");
+  const [ownerSearchError, setOwnerSearchError] = useState("");
   const [errors, setErrors] = useState({});
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [petPhoto, setPetPhoto] = useState(null);
+  const [petPhotoPreview, setPetPhotoPreview] = useState(null);
 
-  // Mock search
-  const handleOwnerSearch = (e) => {
+  const handleOwnerSearch = async (e) => {
     e.preventDefault();
     setOwner(null);
-    setPetList([]);
-    setSelectedPet("");
-    setPetInfo(null);
-    setErrors({});
-    if (!searchValue) {
-      setErrors({ searchValue: "Please enter owner's email or phone." });
+    setOwnerSearchError("");
+    if (!ownerContact) {
+      setOwnerSearchError("Please enter phone or email to search.");
       return;
     }
-    let foundOwner;
-    if (searchType === "email") {
-      foundOwner = MOCK_OWNERS.find((o) => o.email === searchValue);
-    } else {
-      foundOwner = MOCK_OWNERS.find((o) => o.phoneNumber === searchValue);
+    try {
+      const foundOwner = await searchOwner(ownerContact);
+      if (foundOwner) {
+        setOwner(foundOwner);
+        setOwnerSearchError("");
+      } else {
+        setOwnerSearchError("Owner not found.");
+      }
+    } catch (err) {
+      setOwnerSearchError("Error searching owner.");
     }
-    if (foundOwner) {
-      setOwner(foundOwner);
-      setPetList(foundOwner.pets);
-    } else {
-      setErrors({ searchValue: "Owner not found." });
+  };
+
+  const calculateAge = (dob) => {
+    if (!dob) return "";
+    const birthDate = new Date(dob);
+    const today = new Date();
+
+    let years = today.getFullYear() - birthDate.getFullYear();
+    let months = today.getMonth() - birthDate.getMonth();
+    let days = today.getDate() - birthDate.getDate();
+
+    if (days < 0) {
+      months--;
+      const prevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+      days += prevMonth.getDate();
     }
-  };
 
-  const handleSelectPet = (petId) => {
-    setSelectedPet(petId);
-    const pet = petList.find((p) => p.id === petId);
-    setPetInfo(pet || null);
-  };
-
-  // Prescription handlers
-  const handlePrescriptionChange = (index, field, value) => {
-    const updated = [...prescriptions];
-    updated[index][field] = value;
-    setPrescriptions(updated);
-  };
-
-  const handleTimeChange = (index, timeValue) => {
-    const updated = [...prescriptions];
-    const times = updated[index].times || [];
-    if (times.includes(timeValue)) {
-      updated[index].times = times.filter(t => t !== timeValue);
-    } else {
-      updated[index].times = [...times, timeValue];
+    if (months < 0) {
+      years--;
+      months += 12;
     }
-    setPrescriptions(updated);
+
+    if (years < 0) return "";
+
+    return `${years} yrs, ${months} mos, ${days} days`;
   };
 
-  const handleAddPrescription = () => {
-    setPrescriptions([
-      ...prescriptions,
-      { medicine: "", dosage: "", frequency: "", duration: "", instructions: "", times: [] },
-    ]);
-  };
-
-  const handleRemovePrescription = (index) => {
-    const updated = prescriptions.filter((_, i) => i !== index);
-    setPrescriptions(updated);
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    let newErrors = {};
-    if (!owner) newErrors.searchValue = "Please search and select an owner.";
-    if (!selectedPet) newErrors.selectedPet = "Please select a pet.";
-    if (!diagnosis) newErrors.diagnosis = "Diagnosis is required.";
-    if (prescriptions.some(p => !p.medicine)) newErrors.prescriptions = "Medicine name is required for all prescriptions.";
-    setErrors(newErrors);
-    if (Object.keys(newErrors).length > 0) return;
-
-    setShowSuccess(true);
-    setTimeout(() => {
-      setShowSuccess(false);
-      setSearchType("email");
-      setSearchValue("");
-      setOwner(null);
-      setPetList([]);
-      setSelectedPet("");
-      setPetInfo(null);
-      setDiagnosis("");
-      setPrescriptions([
-        { medicine: "", dosage: "", frequency: "", duration: "", instructions: "", times: [] },
-      ]);
-      setTreatmentSuggestions("");
+    if (!owner) {
+      setOwnerSearchError(
+        "Please search and select an owner before registering the pet.",
+      );
+      return;
+    }
+    const petRegistrationDto = {
+      petName,
+      petType,
+      otherPetType: petType === "Other" ? otherPetType : "",
+      breed,
+      sex,
+      color,
+      description,
+      dob,
+      weight,
+      ownerContact,
+    };
+    try {
       setErrors({});
-    }, 2000);
+      const result = await registerPet(petRegistrationDto, petPhoto); // Pass photo!
+      if (result) {
+        alert("Pet registered successfully!");
+        // Optionally reset form here
+      }
+    } catch (error) {
+      if (error.response && error.response.data) {
+        setErrors(error.response.data);
+      } else {
+        alert("Registration failed: " + error.message);
+      }
+    }
   };
 
   return (
     <div
       style={{
-        background: "#f8f9fa",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
         borderRadius: "16px",
         padding: "40px",
         minHeight: "100%",
@@ -166,15 +128,7 @@ const PetMedicalHistoryForm = () => {
       }}
     >
       <form onSubmit={handleSubmit}>
-        <h2 className="mb-3 mt-3 text-center">
-          Pet Medical History & Prescription
-        </h2>
-
-        {showSuccess && (
-          <div className="alert alert-success text-center mb-3">
-            Medical history saved successfully!
-          </div>
-        )}
+        <h2 className="mb-3 mt-3 text-center">Pet Registration</h2>
 
         {/* Owner Search */}
         {!owner && (
@@ -189,19 +143,10 @@ const PetMedicalHistoryForm = () => {
                   type="text"
                   className="form-control me-2"
                   placeholder="Enter owner's phone or email"
-                  value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
+                  value={ownerContact}
+                  onChange={(e) => setOwnerContact(e.target.value)}
                   disabled={!!owner}
                 />
-                <select
-                  className="form-select w-auto me-2"
-                  value={searchType}
-                  onChange={(e) => setSearchType(e.target.value)}
-                  disabled={!!owner}
-                >
-                  <option value="email">Email</option>
-                  <option value="phone">Phone</option>
-                </select>
                 <button
                   className="btn btn-outline-secondary btn-sm"
                   onClick={handleOwnerSearch}
@@ -210,10 +155,22 @@ const PetMedicalHistoryForm = () => {
                 >
                   Search Owner
                 </button>
+                {owner && (
+                  <button
+                    className="btn btn-link btn-sm ms-2"
+                    type="button"
+                    onClick={() => {
+                      setOwner(null);
+                      setOwnerContact("");
+                    }}
+                  >
+                    Change
+                  </button>
+                )}
               </div>
-              {errors.searchValue && (
+              {ownerSearchError && (
                 <div className="invalid-feedback d-block mt-1">
-                  {errors.searchValue}
+                  {ownerSearchError}
                 </div>
               )}
             </div>
@@ -253,10 +210,7 @@ const PetMedicalHistoryForm = () => {
                     type="button"
                     onClick={() => {
                       setOwner(null);
-                      setSearchValue("");
-                      setPetList([]);
-                      setSelectedPet("");
-                      setPetInfo(null);
+                      setOwnerContact("");
                     }}
                   >
                     <i className="bi bi-arrow-left me-1"></i>
@@ -269,40 +223,83 @@ const PetMedicalHistoryForm = () => {
           </div>
         )}
 
-        {/* Pet Dropdown & Info */}
-        {petList.length > 0 && (
-          <div className="form-group row mb-3">
+        {/* Pet Name */}
+        <div className={`form-group row ${errors.petName ? "mb-1" : "mb-3"}`}>
+          <div className="col-2"></div>
+          <div className="col-8">
+            <div className="d-flex align-items-center">
+              <label className="me-2 mb-0" style={{ minWidth: 110 }}>
+                Pet Name
+              </label>
+              <input
+                type="text"
+                className={`form-control ${errors.petName ? "is-invalid" : ""}`}
+                placeholder="Enter pet's name"
+                value={petName}
+                onChange={(e) => setPetName(e.target.value)}
+              />
+            </div>
+            {errors.petName && (
+              <div className="invalid-feedback d-block mt-1">
+                {errors.petName}
+              </div>
+            )}
+          </div>
+          <div className="col-2"></div>
+        </div>
+
+        {/* Pet Type */}
+        <div className={`form-group row ${errors.petType ? "mb-1" : "mb-3"}`}>
+          <div className="col-2"></div>
+          <div className="col-8">
+            <div className="d-flex align-items-center">
+              <label className="me-2 mb-0" style={{ minWidth: 110 }}>
+                Pet Type
+              </label>
+              <select
+                className={`form-control ${errors.petType ? "is-invalid" : ""}`}
+                value={petType}
+                onChange={(e) => setPetType(e.target.value)}
+              >
+                <option value="">Select pet type</option>
+                {PET_TYPE_OPTIONS.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {errors.petType && (
+              <div className="invalid-feedback d-block mt-1">
+                {errors.petType}
+              </div>
+            )}
+          </div>
+          <div className="col-2"></div>
+        </div>
+
+        {/* Other Pet Type */}
+        {petType === "Other" && (
+          <div
+            className={`form-group row ${errors.otherPetType ? "mb-1" : "mb-3"}`}
+          >
             <div className="col-2"></div>
             <div className="col-8">
-              <div className="d-flex align-items-center mb-2">
+              <div className="d-flex align-items-center">
                 <label className="me-2 mb-0" style={{ minWidth: 110 }}>
-                  Select Pet
+                  Other Pet Type
                 </label>
-                <select
-                  className={`form-select ${errors.selectedPet ? "is-invalid" : ""}`}
-                  style={{ minWidth: 120, maxWidth: 200 }}
-                  value={selectedPet}
-                  onChange={(e) => handleSelectPet(e.target.value)}
-                >
-                  <option value="">Select Pet</option>
-                  {petList.map((pet) => (
-                    <option key={pet.id} value={pet.id}>
-                      {pet.petName}
-                    </option>
-                  ))}
-                </select>
+                <input
+                  type="text"
+                  className={`form-control ${errors.otherPetType ? "is-invalid" : ""}`}
+                  placeholder="Specify pet type"
+                  value={otherPetType}
+                  onChange={(e) => setOtherPetType(e.target.value)}
+                />
               </div>
-              {errors.selectedPet && (
-                <div className="invalid-feedback d-block">
-                  {errors.selectedPet}
-                </div>
-              )}
-              {petInfo && (
-                <div className="card p-3">
-                  <b>Pet Name:</b> {petInfo.petName} <br />
-                  <b>Species:</b> {petInfo.species} <br />
-                  <b>Breed:</b> {petInfo.breed} <br />
-                  <b>Age:</b> {petInfo.age}
+              {errors.otherPetType && (
+                <div className="invalid-feedback d-block mt-1">
+                  {errors.otherPetType}
                 </div>
               )}
             </div>
@@ -310,151 +307,239 @@ const PetMedicalHistoryForm = () => {
           </div>
         )}
 
-        {/* Diagnosis */}
-        <div className={`form-group row ${errors.diagnosis ? "mb-1" : "mb-3"}`}>
+        {/* Breed */}
+        <div className={`form-group row ${errors.breed ? "mb-1" : "mb-3"}`}>
           <div className="col-2"></div>
           <div className="col-8">
-            <div className="d-flex align-items-start">
-              <label className="me-2 mb-0" style={{ minWidth: 110, marginTop: "0.375rem" }}>Diagnosis</label>
-              <textarea
-                className={`form-control ${errors.diagnosis ? "is-invalid" : ""}`}
-                rows="2"
-                placeholder="Enter diagnosis/medical history"
-                value={diagnosis}
-                onChange={e => setDiagnosis(e.target.value)}
+            <div className="d-flex align-items-center">
+              <label className="me-2 mb-0" style={{ minWidth: 110 }}>
+                Breed
+              </label>
+              <input
+                type="text"
+                className={`form-control ${errors.breed ? "is-invalid" : ""}`}
+                placeholder="Enter breed"
+                value={breed}
+                onChange={(e) => setBreed(e.target.value)}
               />
             </div>
-            {errors.diagnosis && <div className="invalid-feedback d-block mt-1">{errors.diagnosis}</div>}
+            {errors.breed && (
+              <div className="invalid-feedback d-block mt-1">
+                {errors.breed}
+              </div>
+            )}
           </div>
           <div className="col-2"></div>
         </div>
 
-        {/* Prescription Table */}
-        <div className="form-group row mb-3">
+        {/* Color */}
+        <div className={`form-group row ${errors.color ? "mb-1" : "mb-3"}`}>
           <div className="col-2"></div>
           <div className="col-8">
-            <label className="mb-2" style={{ minWidth: 110 }}>Prescription</label>
-            <table className="table table-bordered">
-              <thead>
-                <tr>
-                  <th style={{ minWidth: 200 }}>Medicine</th>
-                  <th>Dosage</th>
-                  <th>Frequency (per day)</th>
-                  <th>Duration (days)</th>
-                  <th>Instructions</th>
-                  <th>Time of Day</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {prescriptions.map((pres, idx) => (
-                  <tr key
-={idx}>
-                    <td>
-                      <input
-                        type="text"
-                        className={`form-control ${errors.prescriptions ? "is-invalid" : ""}`}
-                        style={{ minWidth: 200, width: "100%" }}
-                        placeholder="Medicine name"
-                        value={pres.medicine}
-                        onChange={e => handlePrescriptionChange(idx, "medicine", e.target.value)}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Dosage (e.g., 5ml, 1 tab)"
-                        value={pres.dosage}
-                        onChange={e => handlePrescriptionChange(idx, "dosage", e.target.value)}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        className="form-control"
-                        placeholder="Times/day"
-                        value={pres.frequency}
-                        onChange={e => handlePrescriptionChange(idx, "frequency", e.target.value)}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        className="form-control"
-                        placeholder="Duration"
-                        value={pres.duration}
-                        onChange={e => handlePrescriptionChange(idx, "duration", e.target.value)}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Instructions"
-                        value={pres.instructions}
-                        onChange={e => handlePrescriptionChange(idx, "instructions", e.target.value)}
-                      />
-                    </td>
-                    <td>
-                      <div className="d-flex flex-wrap">
-                        {TIME_OPTIONS.map(opt => (
-                          <div key={opt.value} className="form-check me-2">
-                            <input
-                              className="form-check-input"
-                              type="checkbox"
-                              id={`time-${idx}-${opt.value}`}
-                              checked={pres.times.includes(opt.value)}
-                              onChange={() => handleTimeChange(idx, opt.value)}
-                            />
-                            <label className="form-check-label" htmlFor={`time-${idx}-${opt.value}`}>
-                              {opt.label}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                    </td>
-                    <td>
-                      {prescriptions.length > 1 && (
-                        <button
-                          type="button"
-                          className="btn btn-danger btn-sm"
-                          onClick={() => handleRemovePrescription(idx)}
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <button
-              type="button"
-              className="btn btn-outline-primary btn-sm"
-              onClick={handleAddPrescription}
-            >
-              Add Medicine
-            </button>
-            {errors.prescriptions && <div className="invalid-feedback d-block mt-1">{errors.prescriptions}</div>}
+            <div className="d-flex align-items-center">
+              <label className="me-2 mb-0" style={{ minWidth: 110 }}>
+                Color
+              </label>
+              <input
+                type="text"
+                className={`form-control ${errors.color ? "is-invalid" : ""}`}
+                placeholder="Enter color"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+              />
+            </div>
+            {errors.color && (
+              <div className="invalid-feedback d-block mt-1">
+                {errors.color}
+              </div>
+            )}
           </div>
           <div className="col-2"></div>
         </div>
 
-        {/* Treatment Suggestions */}
-        <div className="form-group row mb-3">
+        {/* Sex */}
+        <div className={`form-group row ${errors.sex ? "mb-1" : "mb-3"}`}>
           <div className="col-2"></div>
           <div className="col-8">
-            <div className="d-flex align-items-start">
-              <label className="me-2 mb-0" style={{ minWidth: 110, marginTop: "0.375rem" }}>Treatment Suggestions</label>
+            <div className="d-flex align-items-center">
+              <label className="me-2 mb-0" style={{ minWidth: 110 }}>
+                Sex
+              </label>
+              <div>
+                <div className="form-check form-check-inline">
+                  <input
+                    className={`form-check-input ${errors.sex ? "is-invalid" : ""}`}
+                    type="radio"
+                    name="sex"
+                    id="sexMale"
+                    value="Male"
+                    checked={sex === "Male"}
+                    onChange={(e) => setSex(e.target.value)}
+                  />
+                  <label className="form-check-label" htmlFor="sexMale">
+                    Male
+                  </label>
+                </div>
+                <div className="form-check form-check-inline">
+                  <input
+                    className={`form-check-input ${errors.sex ? "is-invalid" : ""}`}
+                    type="radio"
+                    name="sex"
+                    id="sexFemale"
+                    value="Female"
+                    checked={sex === "Female"}
+                    onChange={(e) => setSex(e.target.value)}
+                  />
+                  <label className="form-check-label" htmlFor="sexFemale">
+                    Female
+                  </label>
+                </div>
+                <div className="form-check form-check-inline">
+                  <input
+                    className={`form-check-input ${errors.sex ? "is-invalid" : ""}`}
+                    type="radio"
+                    name="sex"
+                    id="sexOther"
+                    value="Other"
+                    checked={sex === "Other"}
+                    onChange={(e) => setSex(e.target.value)}
+                  />
+                  <label className="form-check-label" htmlFor="sexOther">
+                    Other
+                  </label>
+                </div>
+              </div>
+            </div>
+            {errors.sex && (
+              <div className="invalid-feedback d-block mt-1">{errors.sex}</div>
+            )}
+          </div>
+          <div className="col-2"></div>
+        </div>
+
+        {/* Weight */}
+        <div className={`form-group row ${errors.weight ? "mb-1" : "mb-3"}`}>
+          <div className="col-2"></div>
+          <div className="col-8 d-flex align-items-center">
+            <label className="me-2 mb-0" style={{ minWidth: 110 }}>
+              Weight (kg)
+            </label>
+            <input
+              type="number"
+              className={`form-control  ${errors.weight ? "is-invalid" : ""}`}
+              placeholder="Enter weight"
+              value={weight}
+              onChange={(e) => setWeight(e.target.value)}
+              min="0"
+              step="0.1"
+            />
+          </div>
+          <div className="col-2"></div>
+        </div>
+        {errors.weight && (
+          <div className="row mb-2">
+            <div className="col-2"></div>
+            <div className="col-8">
+              <div className="invalid-feedback d-block">{errors.weight}</div>
+            </div>
+            <div className="col-2"></div>
+          </div>
+        )}
+
+        {/* Registration Date (DOB) and Age */}
+        <div
+          className={`form-group row ${errors.registrationDate ? "mb-1" : "mb-3"}`}
+        >
+          <div className="col-2"></div>
+          <div className="col-8">
+            <div className="d-flex align-items-center">
+              <label className="me-2 mb-0" style={{ minWidth: 110 }}>
+                DOB
+              </label>
+              <input
+                type="date"
+                className={`form-control me-2 ${errors.dob ? "is-invalid" : ""}`}
+                value={dob}
+                onChange={(e) => setdob(e.target.value)}
+                max={new Date().toISOString().split("T")[0]}
+                style={{ maxWidth: 200 }}
+              />
+              <span>
+                <b>Age:</b>{" "}
+                <span className="badge bg-success">
+                  {dob ? calculateAge(dob) : "" || "--"}
+                </span>
+              </span>
+            </div>
+          </div>
+          <div className="col-2"></div>
+        </div>
+
+        {/* Description */}
+        <div
+          className={`form-group row ${errors.description ? "mb-1" : "mb-3"}`}
+        >
+          <div className="col-2"></div>
+          <div className="col-8">
+            <div className="d-flex align-items-center">
+              <label className="me-2 mb-0" style={{ minWidth: 110 }}>
+                Description
+              </label>
               <textarea
-                className="form-control"
-                rows="2"
-                placeholder="E.g., vaccination, surgery, follow-up, diet, etc."
-                value={treatmentSuggestions}
-                onChange={e => setTreatmentSuggestions(e.target.value)}
+                className={`form-control ${errors.description ? "is-invalid" : ""}`}
+                placeholder="Enter description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={2}
+                style={{ resize: "vertical" }}
               />
             </div>
+            {errors.description && (
+              <div className="invalid-feedback d-block mt-1">
+                {errors.description}
+              </div>
+            )}
+          </div>
+          <div className="col-2"></div>
+        </div>
+
+        {/* Pet Photo */}
+        <div className={`form-group row ${errors.petPhoto ? "mb-1" : "mb-3"}`}>
+          <div className="col-2"></div>
+          <div className="col-8">
+            <div className="d-flex align-items-center">
+              <label className="me-2 mb-0" style={{ minWidth: 110 }}>
+                Pet Photo
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                className={`form-control ${errors.petPhoto ? "is-invalid" : ""}`}
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  setPetPhoto(file);
+                  setPetPhotoPreview(file ? URL.createObjectURL(file) : null);
+                }}
+              />
+            </div>
+            {petPhotoPreview && (
+              <div className="mt-2">
+                <img
+                  src={petPhotoPreview}
+                  alt="Pet Preview"
+                  style={{
+                    maxWidth: "150px",
+                    maxHeight: "150px",
+                    borderRadius: "8px",
+                  }}
+                />
+              </div>
+            )}
+            {errors.petPhoto && (
+              <div className="invalid-feedback d-block mt-1">
+                {errors.petPhoto}
+              </div>
+            )}
           </div>
           <div className="col-2"></div>
         </div>
@@ -462,8 +547,12 @@ const PetMedicalHistoryForm = () => {
         <div className="form-group row mt-3">
           <div className="col-8"></div>
           <div className="col-2">
-            <button type="submit" className="btn btn-primary w-100 button-color">
-              Save Medical History
+            <button
+              type="submit"
+              className="btn btn-primary w-100"
+              disabled={!owner}
+            >
+              Register Pet
             </button>
           </div>
           <div className="col-2"></div>
@@ -473,4 +562,4 @@ const PetMedicalHistoryForm = () => {
   );
 };
 
-export default PetMedicalHistoryForm;
+export default PetRegistrationForm;

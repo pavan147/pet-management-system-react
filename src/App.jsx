@@ -9,7 +9,7 @@ import Footer from "./components/Commons/Footer";
 import PetVaccinationRecord from "./components/Forms/PetVaccinationRecord ";
 import PetRegistrationForm from "./components/Forms/PetRegistrationForm";
 import SuccessMessage from "./components/SuccessMessage";
-import PetMedicalHistoryForm from "./components/PetMedicalHistoryForm";
+import PetMedicalHistoryForm from "./components/Forms/PetMedicalHistoryForm";
 
 function App() {
   const [count, setCount] = useState(0);
