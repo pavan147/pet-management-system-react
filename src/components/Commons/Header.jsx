@@ -6,7 +6,6 @@ const Header = () => {
   return (
     <div>
       <nav class="navbar navbar-expand-lg bg-dark navbar-dark fixed-top custom-header-bg">
-                 
         <div class="container-fluid">
           <a class="navbar-brand" href="#">
             Navbar
@@ -59,14 +58,22 @@ const Header = () => {
                     </Link>
                   </li>
 
-                   <li>
-                    <Link
-                      className="dropdown-item"
-                      to="/add-pet"
-                    >
-                      Add Pet 
+                  <li>
+                    <Link className="dropdown-item" to="/add-pet">
+                      Add Pet
                     </Link>
                   </li>
+
+                  <li>
+                    <Link
+                      className="dropdown-item"
+                      to="/pet-medical"
+                    >
+                      pet-medical
+                    </Link>
+                  </li>
+
+
                   <li>
                     <hr class="dropdown-divider" />
                   </li>
@@ -75,7 +82,6 @@ const Header = () => {
                       Something else here
                     </a>
                   </li>
-                  
                 </ul>
               </li>
               <li class="nav-item">
