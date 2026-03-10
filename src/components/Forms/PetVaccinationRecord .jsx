@@ -1,98 +1,133 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { searchOwnerDetailsByEmailOrPhone } from "../../services/OwnerService";
-import { saveVaccinationRecord } from "../../services/PetService";
+// import { saveMedicalHistory } from "../../services/PetMedicalHistoryService";
+import SuccessMessage from "../SuccessMessage";
 
-const vaccinationOptions = [
-  "Rabies",
-  "Distemper",
-  "Parvovirus",
-  "Hepatitis",
-  "Leptospirosis",
-  "Deworming",
-  "Other",
+const TIME_OPTIONS = [
+  { label: "Morning", value: "morning" },
+  { label: "Afternoon", value: "afternoon" },
+  { label: "Evening", value: "evening" },
+  { label: "Night", value: "night" },
 ];
 
-const PetVaccinationRecord = () => {
+const PetMedicalHistoryForm = () => {
   const [searchType, setSearchType] = useState("email");
   const [searchValue, setSearchValue] = useState("");
-  const [petList, setPetList] = useState([]); // List of pets after search
-  const [selectedPet, setSelectedPet] = useState(""); // Selected pet name
-  const [vaccination, setVaccination] = useState("");
-  const [brandAndDoses, setBrandAndDoses] = useState("");
-  const [vaccinationDate, setVaccinationDate] = useState(
-    new Date().toISOString().slice(0, 10),
-  );
-  const [weight, setWeight] = useState("");
-  const [durationMonths, setDurationMonths] = useState(12);
-  const [validTill, setValidTill] = useState("");
+  const [ownerInfo, setOwnerInfo] = useState(null);
+  const [petList, setPetList] = useState([]);
+  const [selectedPet, setSelectedPet] = useState("");
+  const [petInfo, setPetInfo] = useState(null);
+
+  // Medical fields
+  const [diagnosis, setDiagnosis] = useState("");
+  const [prescriptions, setPrescriptions] = useState([
+    { medicine: "", dosage: "", frequency: "", duration: "", instructions: "", times: [] },
+  ]);
+  const [treatmentSuggestions, setTreatmentSuggestions] = useState("");
   const [errors, setErrors] = useState({});
-  const [vaccineName, setVaccineName] = useState("");
- 
+  const [showSuccess, setShowSuccess] = useState(false);
 
-  // Calculate valid till date whenever vaccinationDate or durationMonths changes
-  useEffect(() => {
-    if (vaccinationDate && durationMonths) {
-      const date = new Date(vaccinationDate);
-      date.setMonth(date.getMonth() + Number(durationMonths));
-      setValidTill(date.toISOString().slice(0, 10));
-    } else {
-      setValidTill("");
-    }
-  }, [vaccinationDate, durationMonths]);
-
-  // Mock search handler (replace with real API call)
+  // Search owner and pets
   const handleSearch = async (e) => {
     e.preventDefault();
     setErrors({});
+    setOwnerInfo(null);
     setPetList([]);
     setSelectedPet("");
+    setPetInfo(null);
+
     if (!searchValue) {
       setErrors({ searchValue: "Email or Phone Number is Required" });
       return;
     }
 
     const owner = await searchOwnerDetailsByEmailOrPhone(searchValue);
-    // Simulate API call
-    // Replace this with your actual fetch logic
-    let pets = [];
-    if (owner && owner.pets) {
-      pets = owner.pets.map((pet) => ({
-        petNameFound: pet.petName,
-        petIDFound: pet.id,
-      }));
-    }
-    if (pets.length === 0) {
-      setErrors({ searchValue: "No pets found for this user." });
-      setPetList([]);
-      setSelectedPet("");
+    if (owner) {
+      setOwnerInfo(owner);
+      if (owner.pets && owner.pets.length > 0) {
+        setPetList(owner.pets);
+      } else {
+        setErrors({ searchValue: "No pets found for this owner." });
+      }
     } else {
-      setPetList(pets);
-      setSelectedPet(pets[0]);
+      setErrors({ searchValue: "Owner not found." });
     }
   };
 
-  // Submit handler
-  const handleSubmit = async  (e) => {
-    let response = {};
-    try { 
-    e.preventDefault();
-    setErrors({});
-    const formData = {
-      petId: selectedPet,
-      ownerContact: searchValue,
-      vaccination,
-      vaccineName,
-      brandAndDoses,
-      durationMonths,
-      vaccinationDate,
-      weight,
-      validTill,
-    };
-   response = await saveVaccinationRecord(formData);
-    } catch (error) { 
-    setErrors(error.response.data);
+  // Select pet and show info
+  const handleSelectPet = (petId) => {
+    setSelectedPet(petId);
+    const pet = petList.find((p) => p.id === petId);
+    setPetInfo(pet || null);
+  };
+
+  // Prescription handlers
+  const handlePrescriptionChange = (index, field, value) => {
+    const updated = [...prescriptions];
+    updated[index][field] = value;
+    setPrescriptions(updated);
+  };
+
+  const handleTimeChange = (index, timeValue) => {
+    const updated = [...prescriptions];
+    const times = updated[index].times || [];
+    if (times.includes(timeValue)) {
+      updated[index].times = times.filter(t => t !== timeValue);
+    } else {
+      updated[index].times = [...times, timeValue];
     }
+    setPrescriptions(updated);
+  };
+
+  const handleAddPrescription = () => {
+    setPrescriptions([
+      ...prescriptions,
+      { medicine: "", dosage: "", frequency: "", duration: "", instructions: "", times: [] },
+    ]);
+  };
+
+  const handleRemovePrescription = (index) => {
+    const updated = prescriptions.filter((_, i) => i !== index);
+    setPrescriptions(updated);
+  };
+
+  // Submit medical history
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    let newErrors = {};
+    if (!ownerInfo) newErrors.searchValue = "Please search owner first.";
+    if (!selectedPet) newErrors.selectedPet = "Please select a pet.";
+    if (!diagnosis) newErrors.diagnosis = "Diagnosis is required.";
+    if (prescriptions.some(p => !p.medicine)) newErrors.prescriptions = "Medicine name is required for all prescriptions.";
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
+
+    const formData = {
+      ownerId: ownerInfo.id,
+      petId: selectedPet,
+      diagnosis,
+      prescriptions,
+      treatmentSuggestions,
     };
+
+    try {
+      // Uncomment and use your API
+      // await saveMedicalHistory(formData);
+      setShowSuccess(true);
+    } catch (error) {
+      alert("Failed to save medical history: " + error.message);
+    }
+  };
+
+  if (showSuccess) {
+    return (
+      <SuccessMessage
+        status="pet-medical"
+        redirectTo="/pet-medical-history"
+        delay={3000}
+      />
+    );
+  }
 
   return (
     <div
@@ -106,7 +141,7 @@ const PetVaccinationRecord = () => {
     >
       <form onSubmit={handleSubmit}>
         <h2 className="mb-3 mt-3 text-center">
-          Pet Vaccination & Deworming Record
+          Pet Medical History & Prescription
         </h2>
 
         {/* Search Section */}
@@ -123,11 +158,13 @@ const PetVaccinationRecord = () => {
                 onChange={(e) => {
                   setSearchType(e.target.value);
                   setSearchValue("");
+                  setOwnerInfo(null);
                   setPetList([]);
                   setSelectedPet("");
+                  setPetInfo(null);
                   setErrors({});
                 }}
-                disabled={petList.length > 0} // Disable after search
+                disabled={ownerInfo}
               >
                 <option value="email">Email</option>
                 <option value="phone">Phone</option>
@@ -141,32 +178,9 @@ const PetVaccinationRecord = () => {
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
                 style={{ maxWidth: 220 }}
-                disabled={petList.length > 0} // Disable after search
+                disabled={ownerInfo}
               />
-              {petList.length > 0 && (
-                <select
-                  className={`form-select me-2 ${errors.selectedPet ? "is-invalid" : ""}`}
-                  style={{ minWidth: 120, maxWidth: 200 }}
-                  value={selectedPet}
-                  onChange={(e) => setSelectedPet(e.target.value)}
-                >
-                  <option value="">Select Pet</option>
-                  {petList.map((pet) => (
-                    <option key={pet} value={pet.petIDFound}>
-                      {pet.petNameFound}
-                    </option>
-                  ))}
-                </select>
-              )}
-
-              {petList.length === 0 ? (
-                <button
-                  className="btn btn-outline-primary"
-                  onClick={handleSearch}
-                >
-                  Search
-                </button>
-              ) : (
+              {ownerInfo ? (
                 <a
                   href="#"
                   className="ms-2"
@@ -179,221 +193,243 @@ const PetVaccinationRecord = () => {
                     e.preventDefault();
                     setSearchType("email");
                     setSearchValue("");
+                    setOwnerInfo(null);
                     setPetList([]);
                     setSelectedPet("");
+                    setPetInfo(null);
                     setErrors({});
                   }}
                 >
                   Search Again
                 </a>
+              ) : (
+                <button
+                  className="btn btn-outline-primary"
+                  onClick={handleSearch}
+                >
+                  Search
+                </button>
               )}
             </div>
-            {/* Error messages below the row */}
             {errors.searchValue && (
               <div className="invalid-feedback d-block">
                 {errors.searchValue}
               </div>
             )}
-            {errors.selectedPet && (
-              <div className="invalid-feedback d-block">
-                {errors.selectedPet}
-              </div>
-            )}
           </div>
           <div className="col-2"></div>
         </div>
 
-        {/* Vaccination Dropdown */}
-        <div
-          className={`form-group row ${errors.vaccination ? "mb-0" : "mb-3"}`}
-        >
-          <div className="col-2"></div>
-          <div className="col-8 d-flex align-items-center">
-            <label className="me-2 mb-0" style={{ minWidth: 110 }}>
-              Vaccination
-            </label>
-            <select
-              className={`form-select ${errors.vaccination ? "is-invalid" : ""}`}
-              value={vaccination}
-              onChange={(e) => setVaccination(e.target.value)}
-            >
-              <option value="">Select</option>
-              {vaccinationOptions.map((v) => (
-                <option key={v} value={v}>
-                  {v}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="col-2"></div>
-        </div>
-        {errors.vaccination && (
-          <div className="row mb-0">
+        {/* Owner Info */}
+        {ownerInfo && (
+          <div className="form-group row mb-3">
             <div className="col-2"></div>
             <div className="col-8">
-              <div className="invalid-feedback d-block">
-                {errors.vaccination}
+              <div className="card p-3 mb-2">
+                <b>Owner:</b> {ownerInfo.ownerName} <br />
+                <b>Email:</b> {ownerInfo.email} <br />
+                <b>Phone:</b> {ownerInfo.phone}
               </div>
             </div>
             <div className="col-2"></div>
           </div>
         )}
 
-        {/* VaccinationBrand text field */}
-        <div
-          className={`form-group row ${errors.vaccineName ? "mb-0" : "mb-3"}`}
-        >
-          <div className="col-2"></div>
-          <div className="col-8 d-flex align-items-center">
-            <label className="me-2 mb-0" style={{ minWidth: 110 }}>
-              Vaccination Brand
-            </label>
-            <input
-              type="text"
-              className={`form-control ${errors.vaccineName ? "is-invalid" : ""}`}
-              value={vaccineName}
-              onChange={(e) => setVaccineName(e.target.value)}
-              placeholder="Enter brand"
-            />
-          </div>
-          <div className="col-2"></div>
-        </div>
-        {errors.vaccineName && (
-          <div className="row mb-0">
+        {/* Pet Dropdown & Info */}
+        {petList.length > 0 && (
+          <div className="form-group row mb-3">
             <div className="col-2"></div>
             <div className="col-8">
-              <div className="invalid-feedback d-block">
-                {errors.vaccineName}
+              <div className="d-flex align-items-center mb-2">
+                <label className="me-2 mb-0" style={{ minWidth: 110 }}>
+                  Select Pet
+                </label>
+                <select
+                  className={`form-select ${errors.selectedPet ? "is-invalid" : ""}`}
+                  style={{ minWidth: 120, maxWidth: 200 }}
+                  value={selectedPet}
+                  onChange={(e) => handleSelectPet(e.target.value)}
+                >
+                  <option value="">Select Pet</option>
+                  {petList.map((pet) => (
+                    <option key={pet.id} value={pet.id}>
+                      {pet.petName}
+                    </option>
+                  ))}
+                </select>
               </div>
+              {errors.selectedPet && (
+                <div className="invalid-feedback d-block">
+                  {errors.selectedPet}
+                </div>
+              )}
+              {petInfo && (
+                <div className="card p-3">
+                  <b>Pet Name:</b> {petInfo.petName} <br />
+                  <b>Species:</b> {petInfo.species} <br />
+                  <b>Breed:</b> {petInfo.breed} <br />
+                  <b>Age:</b> {petInfo.age}
+                </div>
+              )}
             </div>
             <div className="col-2"></div>
           </div>
         )}
 
-        {/*   Doses */}
-        <div
-          className={`form-group row ${errors.brandAndDoses ? "mb-0" : "mb-3"}`}
-        >
+        {/* Diagnosis */}
+        <div className={`form-group row ${errors.diagnosis ? "mb-1" : "mb-3"}`}>
           <div className="col-2"></div>
-          <div className="col-8 d-flex align-items-center">
-            <label className="me-2 mb-0" style={{ minWidth: 110 }}>
-              Doses
-            </label>
-            <textarea
-              className={`form-control ${errors.brandAndDoses ? "is-invalid" : ""}`}
-              rows="2"
-              placeholder="Enter brand and doses"
-              value={brandAndDoses}
-              onChange={(e) => setBrandAndDoses(e.target.value)}
-            />
+          <div className="col-8">
+            <div className="d-flex align-items-start">
+              <label className="me-2 mb-0" style={{ minWidth: 110, marginTop: "0.375rem" }}>Diagnosis</label>
+              <textarea
+                className={`form-control ${errors.diagnosis ? "is-invalid" : ""}`}
+                rows="2"
+                placeholder="Enter diagnosis/medical history"
+                value={diagnosis}
+                onChange={e => setDiagnosis(e.target.value)}
+              />
+            </div>
+            {errors.diagnosis && <div className="invalid-feedback d-block mt-1">{errors.diagnosis}</div>}
           </div>
           <div className="col-2"></div>
         </div>
-        {errors.brandAndDoses && (
-          <div className="row mb-0">
-            <div className="col-2"></div>
-            <div className="col-8">
-              <div className="invalid-feedback d-block">
-                {errors.brandAndDoses}
-              </div>
-            </div>
-            <div className="col-2"></div>
-          </div>
-        )}
 
-        {/* Vaccination Date */}
+        {/* Prescription Table */}
         <div className="form-group row mb-3">
           <div className="col-2"></div>
-          <div className="col-8 d-flex align-items-center">
-            <label className="me-2 mb-0" style={{ minWidth: 110 }}>
-              Vaccination Date
-            </label>
-            <input
-              type="date"
-               className={`form-control ${errors.vaccinationDate ? "is-invalid" : ""}`}
-              value={vaccinationDate}
-              onChange={(e) => setVaccinationDate(e.target.value)}
-              max={new Date().toISOString().slice(0, 10)}
-            />
+          <div className="col-8">
+            <label className="mb-2" style={{ minWidth: 110 }}>Prescription</label>
+            <table className="table table-bordered">
+              <thead>
+                <tr>
+                  <th style={{ minWidth: 200 }}>Medicine</th>
+                  <th>Dosage</th>
+                  <th>Frequency (per day)</th>
+                  <th>Duration (days)</th>
+                  <th>Instructions</th>
+                  <th>Time of Day</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {prescriptions.map((pres, idx) => (
+                  <tr key={idx}>
+                    <td>
+                      <input
+                        type="text"
+                        className={`form-control ${errors.prescriptions ? "is-invalid" : ""}`}
+                        style={{ minWidth: 200, width: "100%" }}
+                        placeholder="Medicine name"
+                        value={pres.medicine}
+                        onChange={e => handlePrescriptionChange(idx, "medicine", e.target.value)}
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Dosage (e.g., 5ml, 1 tab)"
+                        value={pres.dosage}
+                        onChange={e => handlePrescriptionChange(idx, "dosage", e.target.value)}
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        className="form-control"
+                        placeholder="Times/day"
+                        value={pres.frequency}
+                        onChange={e => handlePrescriptionChange(idx, "frequency", e.target.value)}
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        className="form-control"
+                        placeholder="Duration"
+                        value={pres.duration}
+                        onChange={e => handlePrescriptionChange(idx, "duration", e.target.value)}
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Instructions"
+                        value={pres.instructions}
+                        onChange={e => handlePrescriptionChange(idx, "instructions", e.target.value)}
+                      />
+                    </td>
+                    <td>
+                      <div className="d-flex flex-wrap
+">
+                        {TIME_OPTIONS.map(opt => (
+                          <div key={opt.value} className="form-check me-2">
+                            <input
+                              className="form-check-input"
+                              type="checkbox"
+                              id={`time-${idx}-${opt.value}`}
+                              checked={pres.times.includes(opt.value)}
+                              onChange={() => handleTimeChange(idx, opt.value)}
+                            />
+                            <label className="form-check-label" htmlFor={`time-${idx}-${opt.value}`}>
+                              {opt.label}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </td>
+                    <td>
+                      {prescriptions.length > 1 && (
+                        <button
+                          type="button"
+                          className="btn btn-danger btn-sm"
+                          onClick={() => handleRemovePrescription(idx)}
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <button
+              type="button"
+              className="btn btn-outline-primary btn-sm"
+              onClick={handleAddPrescription}
+            >
+              Add Medicine
+            </button>
+            {errors.prescriptions && <div className="invalid-feedback d-block mt-1">{errors.prescriptions}</div>}
+          </div>
+          <div className="col-2"></div>
+        </div>
 
-            <div className="col-8 d-flex align-items-center">
-              <label className="me-2 mb-0" style={{ minWidth: 110 }}>
-                Validate Till <span className="me-2">Month(s)</span>
-              </label>
-              <input
-                type="number"               
-                className={`form-control w-auto me-2 ${errors.vaccinationDate ? "is-invalid w-auto me-2" : ""}`}
-                value={durationMonths}
-                min="1"
-                max="60"
-                onChange={(e) => setDurationMonths(e.target.value)}
-                style={{ width: 80 }}
+        {/* Treatment Suggestions */}
+        <div className="form-group row mb-3">
+          <div className="col-2"></div>
+          <div className="col-8">
+            <div className="d-flex align-items-start">
+              <label className="me-2 mb-0" style={{ minWidth: 110, marginTop: "0.375rem" }}>Treatment Suggestions</label>
+              <textarea
+                className="form-control"
+                rows="2"
+                placeholder="E.g., vaccination, surgery, follow-up, diet, etc."
+                value={treatmentSuggestions}
+                onChange={e => setTreatmentSuggestions(e.target.value)}
               />
-              <span>
-                <b>Valid Till:</b>{" "}
-                <span className="badge bg-success">{validTill || "--"}</span>
-              </span>
             </div>
           </div>
-
           <div className="col-2"></div>
         </div>
 
-        {errors.vaccinationDate && (
-          <div className="row mb-2">
-            <div className="col-2"></div>
-            <div className="col-8">
-              <div className="invalid-feedback d-block">{errors.vaccinationDate}</div>
-            </div>
-            <div className="col-2"></div>
-          </div>
-        )}
-
-        {errors.durationMonths && (
-          <div className="row mb-2">
-            <div className="col-2"></div>
-            <div className="col-8">
-              <div className="invalid-feedback d-block">{errors.durationMonths}</div>
-            </div>
-            <div className="col-2"></div>
-          </div>
-        )}
-
-        {/* Weight */}
-        <div className={`form-group row ${errors.weight ? "mb-1" : "mb-3"}`}>
-          <div className="col-2"></div>
-          <div className="col-8 d-flex align-items-center">
-            <label className="me-2 mb-0" style={{ minWidth: 110 }}>
-              Weight (kg)
-            </label>
-            <input
-              type="number"
-              className={`form-control  ${errors.weight ? "is-invalid" : ""}`}
-              placeholder="Enter weight"
-              value={weight}
-              onChange={(e) => setWeight(e.target.value)}
-              min="0"
-              step="0.1"
-            />
-          </div>
-          <div className="col-2"></div>
-        </div>
-        {errors.weight && (
-          <div className="row mb-2">
-            <div className="col-2"></div>
-            <div className="col-8">
-              <div className="invalid-feedback d-block">{errors.weight}</div>
-            </div>
-            <div className="col-2"></div>
-          </div>
-        )}
-
-        {/* Submit */}
         <div className="form-group row mt-3">
           <div className="col-8"></div>
           <div className="col-2">
-            <button type="submit" className="btn btn-primary w-100">
-              Save Record
+            <button type="submit" className="btn btn-primary w-100 button-color">
+              Save Medical History
             </button>
           </div>
           <div className="col-2"></div>
@@ -403,4 +439,4 @@ const PetVaccinationRecord = () => {
   );
 };
 
-export default PetVaccinationRecord;
+export default PetMedicalHistoryForm;

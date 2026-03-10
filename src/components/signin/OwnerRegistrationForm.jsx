@@ -352,7 +352,7 @@ const OwnerRegistrationForm = () => {
         <div className="form-group row mt-3">
           <div className="col-8"></div>
           <div className="col-2">
-            <button type="submit" className="btn btn-primary w-100">
+            <button type="submit" className="btn btn-primary w-100 button-color">
               Register Pet
             </button>
           </div>

@@ -1,0 +1,6 @@
+.custom-header-bg {
+  background-color: rgb(57, 62, 70) !important;
+  color: rgb(238, 238, 238) !important;
+  /* Optional: Add a subtle shadow for more separation */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}

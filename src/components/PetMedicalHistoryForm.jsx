@@ -49,6 +49,12 @@ const TIME_OPTIONS = [
   { label: "Night", value: "night" },
 ];
 
+const MEAL_OPTIONS = [
+  { label: "Anytime", value: "any" },
+  { label: "Before Meal", value: "before" },
+  { label: "After Meal", value: "after" },
+];
+
 const PetMedicalHistoryForm = () => {
   const [searchType, setSearchType] = useState("email");
   const [searchValue, setSearchValue] = useState("");
@@ -57,9 +63,18 @@ const PetMedicalHistoryForm = () => {
   const [selectedPet, setSelectedPet] = useState("");
   const [petInfo, setPetInfo] = useState(null);
 
+  const [allergies, setAllergies] = useState("");
   const [diagnosis, setDiagnosis] = useState("");
   const [prescriptions, setPrescriptions] = useState([
-    { medicine: "", dosage: "", frequency: "", duration: "", instructions: "", times: [] },
+    {
+      medicine: "",
+      dosage: "",
+      frequency: "",
+      duration: "",
+      instructions: "",
+      times: [],
+      meal: "any",
+    },
   ]);
   const [treatmentSuggestions, setTreatmentSuggestions] = useState("");
   const [errors, setErrors] = useState({});
@@ -118,7 +133,15 @@ const PetMedicalHistoryForm = () => {
   const handleAddPrescription = () => {
     setPrescriptions([
       ...prescriptions,
-      { medicine: "", dosage: "", frequency: "", duration: "", instructions: "", times: [] },
+      {
+        medicine: "",
+        dosage: "",
+        frequency: "",
+        duration: "",
+        instructions: "",
+        times: [],
+        meal: "any",
+      },
     ]);
   };
 
@@ -146,9 +169,18 @@ const PetMedicalHistoryForm = () => {
       setPetList([]);
       setSelectedPet("");
       setPetInfo(null);
+      setAllergies("");
       setDiagnosis("");
       setPrescriptions([
-        { medicine: "", dosage: "", frequency: "", duration: "", instructions: "", times: [] },
+        {
+          medicine: "",
+          dosage: "",
+          frequency: "",
+          duration: "",
+          instructions: "",
+          times: [],
+          meal: "any",
+        },
       ]);
       setTreatmentSuggestions("");
       setErrors({});
@@ -310,6 +342,26 @@ const PetMedicalHistoryForm = () => {
           </div>
         )}
 
+        {/* Allergies */}
+        <div className="form-group row mb-3">
+          <div className="col-2"></div>
+          <div className="col-8">
+            <div className="d-flex align-items-start">
+              <label className="me-2 mb-0" style={{ minWidth: 110, marginTop: "0.375rem" }}>
+                Allergies
+              </label>
+              <textarea
+                className="form-control"
+                rows="2"
+                placeholder="List allergies (comma separated or one per line)"
+                value={allergies}
+                onChange={e => setAllergies(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="col-2"></div>
+        </div>
+
         {/* Diagnosis */}
         <div className={`form-group row ${errors.diagnosis ? "mb-1" : "mb-3"}`}>
           <div className="col-2"></div>
@@ -329,106 +381,132 @@ const PetMedicalHistoryForm = () => {
           <div className="col-2"></div>
         </div>
 
-        {/* Prescription Table */}
+        {/* Prescription Section */}
         <div className="form-group row mb-3">
           <div className="col-2"></div>
           <div className="col-8">
-            <label className="mb-2" style={{ minWidth: 110 }}>Prescription</label>
-            <table className="table table-bordered">
-              <thead>
-                <tr>
-                  <th style={{ minWidth: 200 }}>Medicine</th>
-                  <th>Dosage</th>
-                  <th>Frequency (per day)</th>
-                  <th>Duration (days)</th>
-                  <th>Instructions</th>
-                  <th>Time of Day</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {prescriptions.map((pres, idx) => (
-                  <tr key
-={idx}>
-                    <td>
-                      <input
-                        type="text"
-                        className={`form-control ${errors.prescriptions ? "is-invalid" : ""}`}
-                        style={{ minWidth: 200, width: "100%" }}
-                        placeholder="Medicine name"
-                        value={pres.medicine}
-                        onChange={e => handlePrescriptionChange(idx, "medicine", e.target.value)}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Dosage (e.g., 5ml, 1 tab)"
-                        value={pres.dosage}
-                        onChange={e => handlePrescriptionChange(idx, "dosage", e.target.value)}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        className="form-control"
-                        placeholder="Times/day"
-                        value={pres.frequency}
-                        onChange={e => handlePrescriptionChange(idx, "frequency", e.target.value)}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        className="form-control"
-                        placeholder="Duration"
-                        value={pres.duration}
-                        onChange={e => handlePrescriptionChange(idx, "duration", e.target.value)}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Instructions"
-                        value={pres.instructions}
-                        onChange={e => handlePrescriptionChange(idx, "instructions", e.target.value)}
-                      />
-                    </td>
-                    <td>
-                      <div className="d-flex flex-wrap">
-                        {TIME_OPTIONS.map(opt => (
-                          <div key={opt.value} className="form-check me-2">
-                            <input
-                              className="form-check-input"
-                              type="checkbox"
-                              id={`time-${idx}-${opt.value}`}
-                              checked={pres.times.includes(opt.value)}
-                              onChange={() => handleTimeChange(idx, opt.value)}
-                            />
-                            <label className="form-check-label" htmlFor={`time-${idx}-${opt.value}`}>
-                              {opt.label}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                    </td>
-                    <td>
-                      {prescriptions.length > 1 && (
-                        <button
-                          type="button"
-                          className="btn btn-danger btn-sm"
-                          onClick={() => handleRemovePrescription(idx)}
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <h5 className="mb-3 fw-bold">Prescription</h5>
+            {prescriptions.map((pres, idx) => (
+              <div
+                key={idx}
+                className="mb-4 p-3"
+                style={{
+                  background: "#fff",
+                  borderRadius: "8px",
+                  border: "1px solid #e0e0e0",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
+                }}
+              >
+                {/* Row 1: Medicine & Dosage */}
+                <div className="row mb-2">
+                  <div className="col-md-6 mb-2 mb-md-0">
+                    <label className="fw-bold mb-1">Medicine Name</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Enter medicine name"
+                      value={pres.medicine}
+                      onChange={e => handlePrescriptionChange(idx, "medicine", e.target.value)}
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="fw-bold mb-1">Dosage</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="e.g., 5ml, 1 tab"
+                      value={pres.dosage}
+                      onChange={e => handlePrescriptionChange(idx, "dosage", e.target.value)}
+                    />
+                  </div>
+                </div>
+                {/* Row 2: Frequency & Duration */}
+                <div className="row mb-2">
+                  <div className="col-md-6 mb-2 mb-md-0">
+                    <label className="fw-bold mb-1">Frequency (per day)</label>
+                    <input
+                      type="number"
+                      className="form-control"
+                      placeholder="e.g., 2"
+                      value={pres.frequency}
+                      onChange={e => handlePrescriptionChange(idx, "frequency", e.target.value)}
+                      min={1}
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="fw-bold mb-1">Duration (days)</label>
+                    <input
+                      type="number"
+                      className="form-control"
+                      placeholder="e.g., 7"
+                      value={pres.duration}
+                      onChange={e => handlePrescriptionChange(idx, "duration", e.target.value)}
+                      min={1}
+                    />
+                  </div>
+                </div>
+                {/* Row 3: Instructions & Time of Day */}
+                <div className="row mb-2">
+                  <div className="col-md-6 mb-2 mb-md-0">
+                    <label className="fw-bold mb-1">Instructions</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Special instructions"
+                      value={pres.instructions}
+                      onChange={e => handlePrescriptionChange(idx, "instructions", e.target.value)}
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="fw-bold mb-1">Time of Day</label>
+                    <div className="d-flex flex-wrap">
+                      {TIME_OPTIONS.map(opt => (
+                        <div key={opt.value} className="form-check me-3">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id={`time-${idx}-${opt.value}`}
+                            checked={pres.times.includes(opt.value)}
+                            onChange={() => handleTimeChange(idx, opt.value)}
+                          />
+                          <label className="form-check-label" htmlFor={`time-${idx}-${opt.value}`}>
+                            {opt.label}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                {/* Row 4: Meal & Remove button */}
+                <div className="row align-items-center">
+                  <div className="col-md-6 mb-2 mb-md-0">
+                    <label className="fw-bold mb-1">Meal Timing</label>
+                    <select
+                      className="form-select"
+                      value={pres.meal}
+                      onChange={e => handlePrescriptionChange(idx, "meal", e.target.value)}
+                    >
+                      {MEAL_OPTIONS.map(opt => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="col-md-6 text-md-end">
+                    {prescriptions.length > 1 && (
+                      <button
+                        type="button"
+                        className="btn btn-danger btn-sm mt-3 mt-md-0"
+                        onClick={() => handleRemovePrescription(idx)}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
             <button
               type="button"
               className="btn btn-outline-primary btn-sm"

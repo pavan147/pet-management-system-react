@@ -1,10 +1,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import "./Header.css";
 
 const Header = () => {
   return (
     <div>
-      <nav class="navbar navbar-expand-lg bg-dark navbar-dark fixed-top">
+      <nav class="navbar navbar-expand-lg bg-dark navbar-dark fixed-top custom-header-bg">
+                 
         <div class="container-fluid">
           <a class="navbar-brand" href="#">
             Navbar

@@ -9,6 +9,7 @@ import Footer from "./components/Commons/Footer";
 import PetVaccinationRecord from "./components/Forms/PetVaccinationRecord ";
 import PetRegistrationForm from "./components/Forms/PetRegistrationForm";
 import SuccessMessage from "./components/SuccessMessage";
+import PetMedicalHistoryForm from "./components/PetMedicalHistoryForm";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -16,18 +17,19 @@ function App() {
   return (
     <>
       <Header />
-
-      <div class="container-fluid text-center">
+    <div className="app-bg">
+      <div class="container  text-center">
        
            <Routes>
               <Route path="/register" element={<OwnerRegistrationForm />} />
               <Route path="/pet-vaccination-record" element={<PetVaccinationRecord />} />
               <Route path="/add-pet" element={<PetRegistrationForm />} />
               <Route path="/test" element={<SuccessMessage status="owner" />} />
+              <Route path="/pet-medical" element={<PetMedicalHistoryForm   />} />
            </Routes>
         
         </div>
-         
+         </div>
      <Footer/>
     </>
   );
