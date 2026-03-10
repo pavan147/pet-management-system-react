@@ -42,12 +42,11 @@ export const saveVaccinationRecord = async (formData) => {
 
 
 export const savePetMedicalRecord = async (formData) => {
- 
-    const response = await fetch('/api/pet-medical-history', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-     
-    return response.data
+
+  const response = await axios.post(
+  BASE_URL + "/medical-details",  formData,
+    { headers: { "Content-Type": "application/json" } }
+  );
+  return response.data;
+
 };

@@ -1,47 +1,48 @@
 import React, { useState } from "react";
 import { savePetMedicalRecord } from "../../services/PetService";
+import { searchOwnerDetailsByEmailOrPhone } from "../../services/OwnerService";
 
-const MOCK_OWNERS = [
-  {
-    id: "owner1",
-    ownerName: "John Doe",
-    address: "123 Main St, City",
-    email: "john@example.com",
-    phoneNumber: "1234567890",
-    pets: [
-      {
-        id: "pet1",
-        petName: "Buddy",
-        species: "Dog",
-        breed: "Golden Retriever",
-        age: 5,
-      },
-      {
-        id: "pet2",
-        petName: "Mittens",
-        species: "Cat",
-        breed: "Siamese",
-        age: 3,
-      },
-    ],
-  },
-  {
-    id: "owner2",
-    ownerName: "Jane Smith",
-    address: "456 Oak Ave, Town",
-    email: "jane@example.com",
-    phoneNumber: "0987654321",
-    pets: [
-      {
-        id: "pet3",
-        petName: "Max",
-        species: "Dog",
-        breed: "Bulldog",
-        age: 2,
-      },
-    ],
-  },
-];
+// const MOCK_OWNERS = [
+//   {
+//     id: "owner1",
+//     ownerName: "John Doe",
+//     address: "123 Main St, City",
+//     email: "john@example.com",
+//     phoneNumber: "1234567890",
+//     pets: [
+//       {
+//         id: "pet1",
+//         petName: "Buddy",
+//         species: "Dog",
+//         breed: "Golden Retriever",
+//         age: 5,
+//       },
+//       {
+//         id: "pet2",
+//         petName: "Mittens",
+//         species: "Cat",
+//         breed: "Siamese",
+//         age: 3,
+//       },
+//     ],
+//   },
+//   {
+//     id: "owner2",
+//     ownerName: "Jane Smith",
+//     address: "456 Oak Ave, Town",
+//     email: "jane@example.com",
+//     phoneNumber: "0987654321",
+//     pets: [
+//       {
+//         id: "pet3",
+//         petName: "Max",
+//         species: "Dog",
+//         breed: "Bulldog",
+//         age: 2,
+//       },
+//     ],
+//   },
+// ];
 
 const TIME_OPTIONS = [
   { label: "Morning", value: "M" },
@@ -83,7 +84,7 @@ const PetMedicalHistoryForm = () => {
   const [validateTill, setValidateTill] = useState("");
 
   // Mock search
-  const handleOwnerSearch = (e) => {
+  const handleOwnerSearch = async (e) => {
     e.preventDefault();
     setOwner(null);
     setPetList([]);
@@ -95,14 +96,11 @@ const PetMedicalHistoryForm = () => {
       return;
     }
     let foundOwner;
-    if (searchType === "email") {
-      foundOwner = MOCK_OWNERS.find((o) => o.email === searchValue);
-    } else {
-      foundOwner = MOCK_OWNERS.find((o) => o.phoneNumber === searchValue);
-    }
-    if (foundOwner) {
-      setOwner(foundOwner);
-      setPetList(foundOwner.pets);
+        foundOwner = await searchOwnerDetailsByEmailOrPhone(searchValue);   
+      
+      if (foundOwner && foundOwner.pets) {
+        setOwner(foundOwner);
+        setPetList(foundOwner.pets);
     } else {
       setErrors({ searchValue: "Owner not found." });
     }
@@ -159,16 +157,18 @@ const PetMedicalHistoryForm = () => {
 
     // Prepare the data object
     const formData = {
-      owner,
-      pet: petInfo,
+      ownerContact : searchValue,
       allergies,
       diagnosis,
       prescriptions,
       treatmentSuggestions,
-      validateTill
+      validateTill,
+      petId: selectedPet,
+      validateTill      
     };
 
     try {
+      
       const response = await savePetMedicalRecord(formData);
       setShowSuccess(true);
     } catch (error) {
