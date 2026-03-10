@@ -43,10 +43,10 @@ const MOCK_OWNERS = [
 ];
 
 const TIME_OPTIONS = [
-  { label: "Morning", value: "morning" },
-  { label: "Afternoon", value: "afternoon" },
-  { label: "Evening", value: "evening" },
-  { label: "Night", value: "night" },
+  { label: "Morning", value: "M" },
+  { label: "Afternoon", value: "A" },
+  { label: "Evening", value: "E" },
+  { label: "Night", value: "N" },
 ];
 
 const MEAL_OPTIONS = [
@@ -150,15 +150,50 @@ const PetMedicalHistoryForm = () => {
     setPrescriptions(updated);
   };
 
+  // Print all details in handleSubmit
   const handleSubmit = (e) => {
     e.preventDefault();
     let newErrors = {};
-    if (!owner) newErrors.searchValue = "Please search and select an owner.";
-    if (!selectedPet) newErrors.selectedPet = "Please select a pet.";
-    if (!diagnosis) newErrors.diagnosis = "Diagnosis is required.";
-    if (prescriptions.some(p => !p.medicine)) newErrors.prescriptions = "Medicine name is required for all prescriptions.";
-    setErrors(newErrors);
-    if (Object.keys(newErrors).length > 0) return;
+
+    // Print all details
+    console.log("=== Medical History Submission ===");
+    if (owner) {
+      console.log("Owner Details:");
+      console.log(`- Name: ${owner.ownerName}`);
+      console.log(`- Email: ${owner.email}`);
+      console.log(`- Phone: ${owner.phoneNumber}`);
+      console.log(`- Address: ${owner.address}`);
+    } else {
+      console.log("Owner: Not selected");
+    }
+
+    if (petInfo) {
+      console.log("Pet Details:");
+      console.log(`- Name: ${petInfo.petName}`);
+      console.log(`- Species: ${petInfo.species}`);
+      console.log(`- Breed: ${petInfo.breed}`);
+      console.log(`- Age: ${petInfo.age}`);
+    } else {
+      console.log("Pet: Not selected");
+    }
+
+    console.log("Allergies:", allergies);
+    console.log("Diagnosis:", diagnosis);
+
+    console.log("Prescriptions:");
+    prescriptions.forEach((pres, idx) => {
+      console.log(`  Medicine #${idx + 1}:`);
+      console.log(`    - Name: ${pres.medicine}`);
+      console.log(`    - Dosage: ${pres.dosage}`);
+      console.log(`    - Frequency: ${pres.frequency}`);
+      console.log(`    - Duration: ${pres.duration}`);
+      console.log(`    - Instructions: ${pres.instructions}`);
+      console.log(`    - Times: ${pres.times.join(", ")}`);
+      console.log(`    - Meal: ${pres.meal}`);
+    });
+
+    console.log("Treatment Suggestions:", treatmentSuggestions);
+    console.log("=================================");
 
     setShowSuccess(true);
     setTimeout(() => {
@@ -180,6 +215,7 @@ const PetMedicalHistoryForm = () => {
           instructions: "",
           times: [],
           meal: "any",
+          validateTill: ""
         },
       ]);
       setTreatmentSuggestions("");
@@ -458,7 +494,8 @@ const PetMedicalHistoryForm = () => {
                     />
                   </div>
                   <div className="col-md-6">
-                    <label className="fw-bold mb-1">Time of Day</label>
+                    
+<label className="fw-bold mb-1">Time of Day</label>
                     <div className="d-flex flex-wrap">
                       {TIME_OPTIONS.map(opt => (
                         <div key={opt.value} className="form-check me-3">
@@ -493,6 +530,16 @@ const PetMedicalHistoryForm = () => {
                       ))}
                     </select>
                   </div>
+<div className="col-md-4 mb-2 mb-md-0">
+    <label className="fw-bold mb-1">Validate Till</label>
+    <input
+      type="date"
+      className="form-control"
+      value={pres.validateTill}
+      onChange={e => handlePrescriptionChange(idx, "validateTill", e.target.value)}
+    />
+  </div>
+
                   <div className="col-md-6 text-md-end">
                     {prescriptions.length > 1 && (
                       <button
