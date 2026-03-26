@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { saveteAppointment } from "../../services/PetService";
 
 const TIME_OPTIONS = [
   { label: "Morning", value: "morning" },
@@ -33,6 +34,8 @@ const DoctorAppointmentForm = () => {
     if (!form.reason) newErrors.reason = "Reason is required";
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
+
+    saveteAppointment(form);
     setShowSuccess(true);
   };
 

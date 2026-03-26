@@ -11,6 +11,7 @@ import PetRegistrationForm from "./components/Forms/PetRegistrationForm";
 import SuccessMessage from "./components/SuccessMessage";
 import PetMedicalHistoryForm from "./components/Forms/PetMedicalHistoryForm";
 import AppointmentForm from "./components/Forms/DoctorAppointmentForm";
+import DoctorAppointmentForm from "./components/Forms/DoctorAppointmentForm";
 
 function App() {
   const [count, setCount] = useState(0);

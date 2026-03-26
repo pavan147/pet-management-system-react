@@ -73,6 +73,15 @@ const Header = () => {
                     </Link>
                   </li>
 
+                  <li>
+                    <Link
+                      className="dropdown-item"
+                      to="/book-appointment"
+                    >
+                     book-appointment
+                    </Link>
+                  </li>
+
 
                   <li>
                     <hr class="dropdown-divider" />

@@ -50,3 +50,14 @@ export const savePetMedicalRecord = async (formData) => {
   return response.data;
 
 };
+
+
+export const saveteAppointment = async (formData) => {
+
+  const response = await axios.post(
+  BASE_URL + "/book-appointment",  formData,
+    { headers: { "Content-Type": "application/json" } }
+  );
+  return response.data;
+
+};
