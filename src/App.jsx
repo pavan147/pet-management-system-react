@@ -12,6 +12,7 @@ import SuccessMessage from "./components/SuccessMessage";
 import PetMedicalHistoryForm from "./components/Forms/PetMedicalHistoryForm";
 import AppointmentForm from "./components/Forms/DoctorAppointmentForm";
 import DoctorAppointmentForm from "./components/Forms/DoctorAppointmentForm";
+import ReceptionistQueue from "./components/Views/ReceptionistQueue";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -29,6 +30,7 @@ function App() {
               <Route path="/test" element={<SuccessMessage status="owner" />} />
               <Route path="/pet-medical" element={<PetMedicalHistoryForm   />} />
               <Route path="/book-appointment" element={<DoctorAppointmentForm   />} />
+              <Route path="/view-appointment" element={<ReceptionistQueue   />} />
            </Routes>
         
         </div>
