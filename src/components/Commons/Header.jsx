@@ -91,6 +91,15 @@ const Header = () => {
                           pet-medical
                         </Link>
                       </li>
+
+                       <li>
+                        <Link
+                          className="dropdown-item"
+                          to="/view-appointment"
+                        >
+                         view-appointment
+                        </Link>
+                      </li>
                       </>
  )}   
                       <li>

@@ -81,4 +81,14 @@ export const saveteAppointment = async (formData) => {
 
 };
 
+// Fetch appointments by date (default: today)
+export const fetchAppointments = (date) => {
+  return axios.get(BASE_URL + `/appointments?date=${date}`);
+};
+
+// Update appointment status and action
+export const updateAppointmentStatus = (id, status, action) => {
+  return axios.put(BASE_URL + `/appointments/${id}/status`, { status, action });
+};
+
 

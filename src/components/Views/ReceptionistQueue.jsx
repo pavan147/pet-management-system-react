@@ -1,24 +1,30 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { fetchAppointments, updateAppointmentStatus } from "../../services/PetService";
 
 const PAGE_SIZE = 5;
 
-const initialAppointments = [
-  { name: "John Doe", status: "waiting" },
-  { name: "Jane Smith", status: "waiting" },
-  { name: "Alice Johnson", status: "waiting" },
-  { name: "Bob Brown", status: "waiting" },
-  { name: "Charlie Lee", status: "waiting" },
-  { name: "Diana Prince", status: "waiting" },
-  { name: "Eve Adams", status: "waiting" },
-  { name: "Frank Miller", status: "waiting" },
-];
-
 const ReceptionistQueue = () => {
-  const [appointments, setAppointments] = useState(initialAppointments);
+  const [appointments, setAppointments] = useState([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [page, setPage] = useState(1);
+  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10)); // yyyy-MM-dd
 
-  // Pagination helpers
+  // Fetch appointments from backend
+  useEffect(() => {
+    fetchAppointments(date)
+      .then((res) => {
+        setAppointments(res.data);
+        // Set first waiting as current
+        const idx = res.data.findIndex((a) => a.status === "waiting");
+        setCurrentIdx(idx !== -1 ? idx : -1);
+        setPage(1);
+      })
+      .catch((err) => {
+        setAppointments([]);
+        setCurrentIdx(-1);
+      });
+  }, [date]);
+
   const totalPages = Math.ceil(appointments.length / PAGE_SIZE);
   const paginatedAppointments = appointments.slice(
     (page - 1) * PAGE_SIZE,
@@ -27,30 +33,38 @@ const ReceptionistQueue = () => {
 
   const handleCheckIn = (idx) => {
     const globalIdx = (page - 1) * PAGE_SIZE + idx;
-    const updated = appointments.map((appt, i) =>
-      i === globalIdx ? { ...appt, status: "checked-in" } : appt
-    );
-    setAppointments(updated);
-    callNext(globalIdx, updated);
+    const appt = appointments[globalIdx];
+    updateAppointmentStatus(appt.id, "checked-in", "check-in").then(() => {
+      const updated = appointments.map((a, i) =>
+        i === globalIdx ? { ...a, status: "checked-in", action: "check-in" } : a
+      );
+      setAppointments(updated);
+      callNext(globalIdx, updated);
+    });
   };
 
   const handleNotPresent = (idx) => {
     const globalIdx = (page - 1) * PAGE_SIZE + idx;
-    const updated = appointments.map((appt, i) =>
-      i === globalIdx ? { ...appt, status: "pending" } : appt
-    );
-    setAppointments(updated);
-    callNext(globalIdx, updated);
+    const appt = appointments[globalIdx];
+    updateAppointmentStatus(appt.id, "pending", "not-present").then(() => {
+      const updated = appointments.map((a, i) =>
+        i === globalIdx ? { ...a, status: "pending", action: "not-present" } : a
+      );
+      setAppointments(updated);
+      callNext(globalIdx, updated);
+    });
   };
 
   const handleRecall = (idx) => {
     const globalIdx = (page - 1) * PAGE_SIZE + idx;
-    // Set status back to 'waiting' and set as current
-    const updated = appointments.map((appt, i) =>
-      i === globalIdx ? { ...appt, status: "waiting" } : appt
-    );
-    setAppointments(updated);
-    setCurrentIdx(globalIdx);
+    const appt = appointments[globalIdx];
+    updateAppointmentStatus(appt.id, "waiting", "recall").then(() => {
+      const updated = appointments.map((a, i) =>
+        i === globalIdx ? { ...a, status: "waiting", action: "recall" } : a
+      );
+      setAppointments(updated);
+      setCurrentIdx(globalIdx);
+    });
   };
 
   const callNext = (idx, updatedList = appointments) => {
@@ -64,15 +78,25 @@ const ReceptionistQueue = () => {
     setCurrentIdx(nextIdx < updatedList.length ? nextIdx : -1);
   };
 
-  // Pagination controls
   const goToPage = (p) => setPage(p);
 
   return (
     <div className="container mt-5">
       <h2 className="mb-4 text-center">Patient Queue</h2>
+      <div className="mb-3">
+        <label>Select Date: </label>
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          className="form-control"
+          style={{ maxWidth: 200, display: "inline-block", marginLeft: 10 }}
+        />
+      </div>
       <div className="table-responsive">
         <table className="table table-bordered table-hover">
           <thead className="table-light">
+
             <tr>
               <th>#</th>
               <th>Patient Name</th>
@@ -85,7 +109,7 @@ const ReceptionistQueue = () => {
               const globalIdx = (page - 1) * PAGE_SIZE + idx;
               return (
                 <tr
-                  key={globalIdx}
+                  key={appt.id}
                   className={
                     globalIdx === currentIdx
                       ? "table-primary"
