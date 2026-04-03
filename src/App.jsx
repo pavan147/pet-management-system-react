@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Routes, Route, Router } from "react-router-dom";
+import { Routes, Route, Router, Navigate } from "react-router-dom";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
@@ -13,24 +13,44 @@ import PetMedicalHistoryForm from "./components/Forms/PetMedicalHistoryForm";
 import AppointmentForm from "./components/Forms/DoctorAppointmentForm";
 import DoctorAppointmentForm from "./components/Forms/DoctorAppointmentForm";
 import ReceptionistQueue from "./components/Views/ReceptionistQueue";
+import LoginComponent from "./components/signin/LoginComponent";
+import SuccessPage from "./components/Views/SuccessPage";
+import { isUserLoggedIn } from "./services/VeterinaryRegistrationService";
 
 function App() {
   const [count, setCount] = useState(0);
 
+  function AuthenticatedRoute({children}){
+
+    const isAuth = isUserLoggedIn();
+
+    if(isAuth) {
+      return children;
+    }
+
+    return <Navigate to="/login" />
+
+  }
+
   return (
     <>
-      <Header />
+        <Header />
     <div className="app-bg">
       <div class="container  text-center">
        
            <Routes>
+             
+              <Route path="/login" element={ <LoginComponent/> } />
               <Route path="/register" element={<OwnerRegistrationForm />} />
-              <Route path="/pet-vaccination-record" element={<PetVaccinationRecord />} />
-              <Route path="/add-pet" element={<PetRegistrationForm />} />
-              <Route path="/test" element={<SuccessMessage status="owner" />} />
-              <Route path="/pet-medical" element={<PetMedicalHistoryForm   />} />
-              <Route path="/book-appointment" element={<DoctorAppointmentForm   />} />
-              <Route path="/view-appointment" element={<ReceptionistQueue   />} />
+              <Route path="/SuccessPage" element={<AuthenticatedRoute><SuccessPage /></AuthenticatedRoute>} />
+              
+              {/* Protected Routes - User must be logged in */}
+              <Route path="/pet-vaccination-record" element={<AuthenticatedRoute><PetVaccinationRecord /></AuthenticatedRoute>} />
+              <Route path="/add-pet" element={<AuthenticatedRoute><PetRegistrationForm /></AuthenticatedRoute>} />
+              <Route path="/pet-medical" element={<AuthenticatedRoute><PetMedicalHistoryForm /></AuthenticatedRoute>} />
+              <Route path="/book-appointment" element={<AuthenticatedRoute><DoctorAppointmentForm /></AuthenticatedRoute>} />
+              <Route path="/view-appointment" element={<AuthenticatedRoute><ReceptionistQueue /></AuthenticatedRoute>} />
+              <Route path="/test" element={<AuthenticatedRoute><SuccessMessage status="owner" /></AuthenticatedRoute>} />
            </Routes>
         
         </div>

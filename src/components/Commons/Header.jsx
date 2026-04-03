@@ -1,8 +1,22 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import "./Header.css";
+import { logout } from "../../services/VeterinaryRegistrationService";
+import { useNavigate } from "react-router-dom";
+import { isUserLoggedIn } from "../../services/VeterinaryRegistrationService";
 
 const Header = () => {
+
+      const isAuth = isUserLoggedIn();
+
+    const navigator = useNavigate();
+
+   function handleLogout(){
+        logout();
+        navigator('/login')
+    }
+
+
   return (
     <div>
       <nav class="navbar navbar-expand-lg bg-dark navbar-dark fixed-top custom-header-bg">
@@ -10,6 +24,7 @@ const Header = () => {
           <a class="navbar-brand" href="#">
             Navbar
           </a>
+ 
           <button
             class="navbar-toggler"
             type="button"
@@ -106,9 +121,17 @@ const Header = () => {
                 placeholder="Search"
                 aria-label="Search"
               />
-              <button class="btn btn-outline-success" type="submit">
-                Search
-              </button>
+              {isAuth &&    
+  <li className='nav-item'>
+    <button 
+      className="btn btn-outline-success" 
+      type="button" 
+      onClick={handleLogout}
+    >
+      Search
+    </button>
+  </li>
+}
             </form>
           </div>
         </div>
