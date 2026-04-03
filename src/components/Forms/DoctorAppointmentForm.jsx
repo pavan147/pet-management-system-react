@@ -21,22 +21,32 @@ const DoctorAppointmentForm = () => {
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    setErrors({ ...errors, [e.target.name]: "" }); // Clear error on change
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    let newErrors = {};
-    if (!form.name) newErrors.name = "Name is required";
-    if (!form.email) newErrors.email = "Email is required";
-    if (!form.phone) newErrors.phone = "Phone is required";
-    if (!form.date) newErrors.date = "Date is required";
-    if (!form.time) newErrors.time = "Time is required";
-    if (!form.reason) newErrors.reason = "Reason is required";
-    setErrors(newErrors);
-    if (Object.keys(newErrors).length > 0) return;
+    setShowSuccess(false);
+    setErrors({}); // Clear previous errors
 
-    saveteAppointment(form);
-    setShowSuccess(true);
+    try {
+      await saveteAppointment(form);
+      setShowSuccess(true);
+      setForm({
+        name: "",
+        email: "",
+        phone: "",
+        date: "",
+        time: "",
+        reason: "",
+      });
+    } catch (error) {
+      if (error.response && error.response.data) {
+        setErrors(error.response.data);
+      } else {
+        alert("Booking failed: " + (error.message || "Unknown error"));
+      }
+    }
   };
 
   return (
@@ -60,7 +70,7 @@ const DoctorAppointmentForm = () => {
         )}
 
         {/* Name */}
-        <div className="form-group row mb-3">
+        <div className={`form-group row ${errors.name ? "mb-1" : "mb-3"}`}>
           <div className="col-2"></div>
           <div className="col-8">
             <div className="d-flex align-items-center">
@@ -90,7 +100,7 @@ const DoctorAppointmentForm = () => {
         </div>
 
         {/* Email */}
-        <div className="form-group row mb-3">
+        <div className={`form-group row ${errors.email ? "mb-1" : "mb-3"}`}>
           <div className="col-2"></div>
           <div className="col-8">
             <div className="d-flex align-items-center">
@@ -120,7 +130,7 @@ const DoctorAppointmentForm = () => {
         </div>
 
         {/* Phone */}
-        <div className="form-group row mb-3">
+        <div className={`form-group row ${errors.phone ? "mb-1" : "mb-3"}`}>
           <div className="col-2"></div>
           <div className="col-8">
             <div className="d-flex align-items-center">
@@ -149,38 +159,38 @@ const DoctorAppointmentForm = () => {
           <div className="col-2"></div>
         </div>
 
-        {/* Date */}
-        <div className="form-group row mb-3">
-          <div className="col-2"></div>
-          <div className="col-8">
-            <div className="d-flex align-items-center">
-              <label
-                className="me-2 mb-0"
-                htmlFor="date"
-                style={{ minWidth: 110 }}
-              >
-                Appointment Date
-              </label>
-              <input
-                type="date"
-                className={`form-control ${errors.date ? "is-invalid" : ""}`}
-                id="date"
-                name="date"
-                value={form.date}
-                onChange={handleChange}
-              />
-            </div>
-            {errors.date && (
-              <div className="invalid-feedback d-block mt-1">
-                {errors.date}
-              </div>
-            )}
-          </div>
-          <div className="col-2"></div>
-        </div>
+       {/* Date */}
+<div className={`form-group row ${errors.date ? "mb-1" : "mb-3"}`}>
+  <div className="col-2"></div>
+  <div className="col-8">
+    <div className="d-flex align-items-center">
+      <label
+        className="me-2 mb-0"
+        htmlFor="date"
+        style={{ minWidth: 110 }}
+      >
+        Appointment Date
+      </label>
+      <input
+        type="date"
+        className={`form-control ${errors.date ? "is-invalid" : ""}`}
+        id="date"
+        name="date"
+        value={form.date}
+        onChange={handleChange}
+      />
+    </div>
+    {errors.date && (
+      <div className="invalid-feedback d-block mt-1">
+        {errors.date}
+      </div>
+    )}
+  </div>
+  <div className="col-2"></div>
+</div>
 
         {/* Time */}
-        <div className="form-group row mb-3">
+        <div className={`form-group row ${errors.time ? "mb-1" : "mb-3"}`}>
           <div className="col-2"></div>
           <div className="col-8">
             <div className="d-flex align-items-center">
@@ -216,7 +226,7 @@ const DoctorAppointmentForm = () => {
         </div>
 
         {/* Reason */}
-        <div className="form-group row mb-3">
+        <div className={`form-group row ${errors.reason ? "mb-1" : "mb-3"}`}>
           <div className="col-2"></div>
           <div className="col-8">
             <div className="d-flex align-items-start">
