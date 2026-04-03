@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import { saveRegistration } from "../../services/VeterinaryRegistrationService";
 import { searchOwnerDetailsByEmailOrPhone } from "../../services/OwnerService";
 //import petBg from "..public/bkimg.jpg"; // Uncomment and update the path if you want a background
@@ -6,6 +7,7 @@ import debounce from "lodash.debounce";
 import SuccessMessage from "../SuccessMessage";
 
 const OwnerRegistrationForm = () => {
+  const location = useLocation();
   const [email, setEmail] = useState("");
   const [emailOtp, setEmailOtp] = useState("");
   const [phone, setPhone] = useState("");
@@ -18,6 +20,17 @@ const OwnerRegistrationForm = () => {
   const [phoneNumberExists, setPhoneNumberExist] = useState(false);
   const [errors, setErrors] = useState({});
   const [showSuccess, setShowSuccess] = useState(false);
+
+  // Pre-fill form with data from appointment if available
+  useEffect(() => {
+    if (location.state?.prefillData) {
+      const { ownerName: name, email: emailData, phone: phoneData, address: addressData } = location.state.prefillData;
+      if (name) setOwnerName(name);
+      if (emailData) setEmail(emailData);
+      if (phoneData) setPhone(phoneData);
+      if (addressData) setAddress(addressData);
+    }
+  }, [location.state]);
 
     const checkPhoneNumberAlreadyExists = async (phoneNumber) => {
     try {
@@ -148,6 +161,7 @@ const OwnerRegistrationForm = () => {
                 type="text"
                 className={`form-control ${errors.ownerName ? "is-invalid" : ""}`}
                 placeholder="Enter owner's name"
+                value={ownerName}
                 onChange={(e) => setOwnerName(e.target.value)}
               />
             </div>
@@ -174,6 +188,7 @@ const OwnerRegistrationForm = () => {
                 className={`form-control ${errors.address ? "is-invalid" : ""}`}
                 rows="2"
                 placeholder="Enter address"
+                value={address}
                 onChange={(e) => setAddress(e.target.value)}
               />
             </div>

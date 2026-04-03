@@ -43,6 +43,7 @@ function App() {
              
               <Route path="/login" element={ <LoginComponent/> } />
               <Route path="/book-appointment" element={<DoctorAppointmentForm/>} /> 
+              <Route path="/owner-registration" element={<OwnerRegistrationForm />} />
              
               {/* Protected Routes - User must be logged in */ }
                <Route path="/book-appointment" element={ <DoctorAppointmentForm /> } />

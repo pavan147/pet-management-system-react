@@ -107,10 +107,26 @@ const ReceptionistQueue = () => {
 
   const goToPage = (p) => setPage(p);
 
+  const handleClosePopupOnly = () => {
+    setShowPopup(false);
+    setPopupMessage("");
+  };
+
   const handlePopupClose = () => {
     setShowPopup(false);
     setPopupMessage("");
-     navigator('/register')
+    const globalIdx = (page - 1) * PAGE_SIZE + currentIdx;
+    const appt = appointments[globalIdx];
+    navigator('/owner-registration', {
+      state: {
+        prefillData: {
+          ownerName: appt.name || "",
+          email: appt.email || "",
+          phone: appt.phone || "",
+          address: appt.address || "",
+        }
+      }
+    });
   };
 
   return (
@@ -255,7 +271,7 @@ const ReceptionistQueue = () => {
                 fontSize: "1.2rem",
                 cursor: "pointer",
               }}
-              onClick={handlePopupClose}
+              onClick={handleClosePopupOnly}
               aria-label="Close"
             >
               ×
