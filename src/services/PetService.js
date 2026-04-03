@@ -91,4 +91,8 @@ export const updateAppointmentStatus = (id, status, action) => {
   return axios.put(BASE_URL + `/appointments/${id}/status`, { status, action });
 };
 
+export const checkOwnerRegistered = (email) => {
+  return axios.get(BASE_URL + `/api/pets/owner/check?email=${encodeURIComponent(email)}`);
+}
+
 

@@ -1,25 +1,32 @@
 import React, { useState, useEffect } from "react";
-import { fetchAppointments, updateAppointmentStatus } from "../../services/PetService";
+import {
+  fetchAppointments,
+  updateAppointmentStatus,
+  checkOwnerRegistered,
+} from "../../services/PetService";
+import { useNavigate } from "react-router-dom";
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 const ReceptionistQueue = () => {
   const [appointments, setAppointments] = useState([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [page, setPage] = useState(1);
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10)); // yyyy-MM-dd
+  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupMessage, setPopupMessage] = useState("");
+  const [redirectUrl, setRedirectUrl] = useState("");
+  const navigator = useNavigate();
 
-  // Fetch appointments from backend
   useEffect(() => {
     fetchAppointments(date)
       .then((res) => {
         setAppointments(res.data);
-        // Set first waiting as current
         const idx = res.data.findIndex((a) => a.status === "waiting");
         setCurrentIdx(idx !== -1 ? idx : -1);
         setPage(1);
       })
-      .catch((err) => {
+      .catch(() => {
         setAppointments([]);
         setCurrentIdx(-1);
       });
@@ -31,16 +38,36 @@ const ReceptionistQueue = () => {
     page * PAGE_SIZE
   );
 
-  const handleCheckIn = (idx) => {
+  const handleCheckIn = async (idx) => {
     const globalIdx = (page - 1) * PAGE_SIZE + idx;
     const appt = appointments[globalIdx];
-    updateAppointmentStatus(appt.id, "checked-in", "check-in").then(() => {
+    if (!appt.id) {
+      alert("Appointment ID missing. Please add 'id' to your backend DTO.");
+      return;
+    }
+    try {
+      // Check owner registration
+      const res = await checkOwnerRegistered(appt.email);
+      if (res.data === false) {
+        setPopupMessage(
+          `Owner with email "${appt.email}" is not registered. Please register the owner before checking in.`
+        );
+        setRedirectUrl("/owner-registration");
+        setShowPopup(true);
+        return;
+      }
+      // Owner is registered, proceed with check-in
+      await updateAppointmentStatus(appt.id, "checked-in", "check-in");
       const updated = appointments.map((a, i) =>
         i === globalIdx ? { ...a, status: "checked-in", action: "check-in" } : a
       );
       setAppointments(updated);
       callNext(globalIdx, updated);
-    });
+    } catch (err) {
+      setPopupMessage("Please registar this user before checking in.");
+      setRedirectUrl("");
+      setShowPopup(true);
+    }
   };
 
   const handleNotPresent = (idx) => {
@@ -80,6 +107,12 @@ const ReceptionistQueue = () => {
 
   const goToPage = (p) => setPage(p);
 
+  const handlePopupClose = () => {
+    setShowPopup(false);
+    setPopupMessage("");
+     navigator('/register')
+  };
+
   return (
     <div className="container mt-5">
       <h2 className="mb-4 text-center">Patient Queue</h2>
@@ -96,7 +129,6 @@ const ReceptionistQueue = () => {
       <div className="table-responsive">
         <table className="table table-bordered table-hover">
           <thead className="table-light">
-
             <tr>
               <th>#</th>
               <th>Patient Name</th>
@@ -109,7 +141,7 @@ const ReceptionistQueue = () => {
               const globalIdx = (page - 1) * PAGE_SIZE + idx;
               return (
                 <tr
-                  key={appt.id}
+                  key={appt.id ? appt.id : globalIdx}
                   className={
                     globalIdx === currentIdx
                       ? "table-primary"
@@ -182,6 +214,64 @@ const ReceptionistQueue = () => {
       {currentIdx === -1 && (
         <div className="alert alert-info text-center mt-3">
           All patients have been processed.
+        </div>
+      )}
+      {/* Modal Overlay */}
+      {showPopup && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            background: "rgba(0,0,0,0.5)",
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: "8px",
+              maxWidth: "400px",
+              width: "100%",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+              padding: "24px",
+              position: "relative",
+            }}
+          >
+            <h5 style={{ marginBottom: "16px" }}>Registration Required</h5>
+            <button
+              type="button"
+              style={{
+                position: "absolute",
+                top: "16px",
+                right: "16px",
+                background: "none",
+                border: "none",
+                fontSize: "1.2rem",
+                cursor: "pointer",
+              }}
+              onClick={handlePopupClose}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <div>
+              <p>{popupMessage}</p>
+            </div>
+            <div style={{ textAlign: "right", marginTop: "24px" }}>
+              <button
+                className="btn btn-primary"
+                onClick={handlePopupClose}
+              >
+                Go to Registration
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
