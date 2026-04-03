@@ -33,29 +33,31 @@ function App() {
   }
 
   return (
-    <>
-        <Header />
+    <>   
+    
+      <Header />
     <div className="app-bg">
       <div class="container  text-center">
        
            <Routes>
              
               <Route path="/login" element={ <LoginComponent/> } />
-              <Route path="/register" element={<OwnerRegistrationForm />} />
+              <Route path="/book-appointment" element={<DoctorAppointmentForm/>} /> 
+             
+              {/* Protected Routes - User must be logged in */ }
+               <Route path="/book-appointment" element={ <DoctorAppointmentForm /> } />
               <Route path="/SuccessPage" element={<AuthenticatedRoute><SuccessPage /></AuthenticatedRoute>} />
-              
-              {/* Protected Routes - User must be logged in */}
               <Route path="/pet-vaccination-record" element={<AuthenticatedRoute><PetVaccinationRecord /></AuthenticatedRoute>} />
               <Route path="/add-pet" element={<AuthenticatedRoute><PetRegistrationForm /></AuthenticatedRoute>} />
               <Route path="/pet-medical" element={<AuthenticatedRoute><PetMedicalHistoryForm /></AuthenticatedRoute>} />
-              <Route path="/book-appointment" element={<AuthenticatedRoute><DoctorAppointmentForm /></AuthenticatedRoute>} />
               <Route path="/view-appointment" element={<AuthenticatedRoute><ReceptionistQueue /></AuthenticatedRoute>} />
               <Route path="/test" element={<AuthenticatedRoute><SuccessMessage status="owner" /></AuthenticatedRoute>} />
+              <Route path="/register" element={<AuthenticatedRoute><OwnerRegistrationForm /> </AuthenticatedRoute>} />
            </Routes>
         
         </div>
          </div>
-     <Footer/>
+      && <Footer/>
     </>
   );
 }

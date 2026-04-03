@@ -7,15 +7,17 @@ import { isUserLoggedIn } from "../../services/VeterinaryRegistrationService";
 
 const Header = () => {
 
-      const isAuth = isUserLoggedIn();
+  const isAuth = isUserLoggedIn();
 
-    const navigator = useNavigate();
+  const navigator = useNavigate();
 
-   function handleLogout(){
-        logout();
-        navigator('/login')
-    }
-
+  function handleLogout() {
+    logout();
+    navigator('/login')
+  }
+  function redirectToLogin() {
+    navigator('/login')
+  }
 
   return (
     <div>
@@ -24,7 +26,7 @@ const Header = () => {
           <a class="navbar-brand" href="#">
             Navbar
           </a>
- 
+
           <button
             class="navbar-toggler"
             type="button"
@@ -59,43 +61,48 @@ const Header = () => {
                   Dropdown
                 </a>
                 <ul class="dropdown-menu">
-                  <li>
-                    <Link className="dropdown-item" to="/register">
-                      Owner Registration
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      className="dropdown-item"
-                      to="/pet-vaccination-record"
-                    >
-                      Pet Vaccination Record
-                    </Link>
-                  </li>
+                  {isAuth && (
+                    <>
+                      <li>
+                        <Link className="dropdown-item" to="/register">
+                          Owner Registration
+                        </Link>
+                      </li>
 
-                  <li>
-                    <Link className="dropdown-item" to="/add-pet">
-                      Add Pet
-                    </Link>
-                  </li>
+                      <li>
+                        <Link
+                          className="dropdown-item"
+                          to="/pet-vaccination-record"
+                        >
+                          Pet Vaccination Record
+                        </Link>
+                      </li>
+                      <li>
+                        <Link className="dropdown-item" to="/add-pet">
+                          Add Pet
+                        </Link>
+                      </li>
 
-                  <li>
-                    <Link
-                      className="dropdown-item"
-                      to="/pet-medical"
-                    >
-                      pet-medical
-                    </Link>
-                  </li>
-
-                  <li>
-                    <Link
-                      className="dropdown-item"
-                      to="/book-appointment"
-                    >
-                     book-appointment
-                    </Link>
-                  </li>
+                      <li>
+                        <Link
+                          className="dropdown-item"
+                          to="/pet-medical"
+                        >
+                          pet-medical
+                        </Link>
+                      </li>
+                      </>
+ )}   
+                      <li>
+                        <Link
+                          className="dropdown-item"
+                          to="/book-appointment"
+                        >
+                          book-appointment
+                        </Link>
+                      </li>
+                    
+                 
 
 
                   <li>
@@ -121,17 +128,29 @@ const Header = () => {
                 placeholder="Search"
                 aria-label="Search"
               />
-              {isAuth &&    
-  <li className='nav-item'>
-    <button 
-      className="btn btn-outline-success" 
-      type="button" 
-      onClick={handleLogout}
-    >
-      Search
-    </button>
-  </li>
-}
+              {isAuth &&
+                <li className='nav-item'>
+                  <button
+                    className="btn btn-outline-success"
+                    type="button"
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </button>
+                </li>
+              }
+
+              {!isAuth &&
+                <li className='nav-item'>
+                  <button
+                    className="btn btn-outline-success"
+                    type="button"
+                    onClick={redirectToLogin}
+                  >
+                    Login
+                  </button>
+                </li>
+              }
             </form>
           </div>
         </div>
