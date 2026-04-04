@@ -15,6 +15,7 @@ const DoctorAppointmentForm = () => {
     date: "",
     time: "",
     reason: "",
+    address: "", // Added address field
   });
   const [errors, setErrors] = useState({});
   const [showSuccess, setShowSuccess] = useState(false);
@@ -39,6 +40,7 @@ const DoctorAppointmentForm = () => {
         date: "",
         time: "",
         reason: "",
+        address: "", // Reset address field
       });
     } catch (error) {
       if (error.response && error.response.data) {
@@ -159,35 +161,35 @@ const DoctorAppointmentForm = () => {
           <div className="col-2"></div>
         </div>
 
-       {/* Date */}
-<div className={`form-group row ${errors.date ? "mb-1" : "mb-3"}`}>
-  <div className="col-2"></div>
-  <div className="col-8">
-    <div className="d-flex align-items-center">
-      <label
-        className="me-2 mb-0"
-        htmlFor="date"
-        style={{ minWidth: 110 }}
-      >
-        Appointment Date
-      </label>
-      <input
-        type="date"
-        className={`form-control ${errors.date ? "is-invalid" : ""}`}
-        id="date"
-        name="date"
-        value={form.date}
-        onChange={handleChange}
-      />
-    </div>
-    {errors.date && (
-      <div className="invalid-feedback d-block mt-1">
-        {errors.date}
-      </div>
-    )}
-  </div>
-  <div className="col-2"></div>
-</div>
+        {/* Date */}
+        <div className={`form-group row ${errors.date ? "mb-1" : "mb-3"}`}>
+          <div className="col-2"></div>
+          <div className="col-8">
+            <div className="d-flex align-items-center">
+              <label
+                className="me-2 mb-0"
+                htmlFor="date"
+                style={{ minWidth: 110 }}
+              >
+                Appointment Date
+              </label>
+              <input
+                type="date"
+                className={`form-control ${errors.date ? "is-invalid" : ""}`}
+                id="date"
+                name="date"
+                value={form.date}
+                onChange={handleChange}
+              />
+            </div>
+            {errors.date && (
+              <div className="invalid-feedback d-block mt-1">
+                {errors.date}
+              </div>
+            )}
+          </div>
+          <div className="col-2"></div>
+        </div>
 
         {/* Time */}
         <div className={`form-group row ${errors.time ? "mb-1" : "mb-3"}`}>
@@ -249,6 +251,36 @@ const DoctorAppointmentForm = () => {
             {errors.reason && (
               <div className="invalid-feedback d-block mt-1">
                 {errors.reason}
+              </div>
+            )}
+          </div>
+          <div className="col-2"></div>
+        </div>
+
+        {/* Address */}
+        <div className={`form-group row ${errors.address ? "mb-1" : "mb-3"}`}>
+          <div className="col-2"></div>
+          <div className="col-8">
+            <div className="d-flex align-items-start">
+              <label
+                className="me-2 mb-0"
+                htmlFor="address"
+                style={{ minWidth: 110, marginTop: "0.375rem" }}
+              >
+                Address
+              </label>
+              <textarea
+                className={`form-control ${errors.address ? "is-invalid" : ""}`}
+                id="address"
+                name="address"
+                rows="2"
+                value={form.address}
+                onChange={handleChange}
+              />
+            </div>
+            {errors.address && (
+              <div className="invalid-feedback d-block mt-1">
+                {errors.address}
               </div>
             )}
           </div>
