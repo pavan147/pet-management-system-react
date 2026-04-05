@@ -109,4 +109,35 @@ export const checkOwnerRegistered = (email) => {
   return axios.get(`${BASE_URL}/owner/check?email=${encodeURIComponent(email)}`);
 }
 
+// Download Prescription PDF for a specific medical record
+export const downloadPrescriptionPdf = async (petId, petMedicalId) => {
+  const response = await axios.get(
+    `${BASE_URL}/medical-details/prescription-pdf`,
+    {
+      params: { petId, petMedicalId },
+      responseType: "blob",
+    }
+  );
+
+  // Build a filename from the Content-Disposition header or fall back to a default
+  const contentDisposition = response.headers["content-disposition"];
+  let fileName = `pet_${petId}_medical_${petMedicalId}_prescription.pdf`;
+  if (contentDisposition) {
+    const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+    if (match && match[1]) {
+      fileName = match[1].replace(/['"]/g, "");
+    }
+  }
+
+  // Create a temporary anchor element to trigger the browser download
+  const url = window.URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", fileName);
+  document.body.appendChild(link);
+  link.click();
+  link.parentNode.removeChild(link);
+  window.URL.revokeObjectURL(url);
+};
+
 

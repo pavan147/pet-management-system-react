@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getDashboardData } from "../../services/PetService";
+import { getDashboardData, downloadPrescriptionPdf } from "../../services/PetService";
 
 // Utility function to calculate days remaining
 const getDaysRemaining = (validTillDate) => {
@@ -244,6 +244,21 @@ const AlertsNotifications = ({ vaccinations, medicalRecords, pets }) => {
 // Pet Info Card Component
 const PetCard = ({ pet, vaccinations, medicalRecords }) => {
   const [activeTab, setActiveTab] = useState("info");
+  const [downloadingId, setDownloadingId] = useState(null);
+  const [downloadError, setDownloadError] = useState(null);
+
+  const handleDownloadPdf = async (petId, petMedicalId, diagnosis) => {
+    setDownloadingId(petMedicalId);
+    setDownloadError(null);
+    try {
+      await downloadPrescriptionPdf(petId, petMedicalId);
+    } catch (err) {
+      console.error("PDF download error:", err);
+      setDownloadError(`Failed to download prescription for "${diagnosis}". Please try again.`);
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   return (
     <div className="card shadow-sm border-0">
@@ -362,35 +377,87 @@ const PetCard = ({ pet, vaccinations, medicalRecords }) => {
 
           {activeTab === "medical" && (
             <div className="py-2">
+              {downloadError && (
+                <div className="alert alert-danger alert-dismissible fade show py-2 mb-3" role="alert">
+                  <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                  {downloadError}
+                  <button
+                    type="button"
+                    className="btn-close btn-sm"
+                    onClick={() => setDownloadError(null)}
+                    aria-label="Close"
+                  ></button>
+                </div>
+              )}
               {medicalRecords.length === 0 ? (
                 <div className="alert alert-info">No medical records yet.</div>
               ) : (
                 <div style={{ maxHeight: "500px", overflowY: "auto" }}>
                   {medicalRecords.map((record, idx) => (
-                    <div key={idx} className="card border-light mb-3">
+                    <div key={idx} className="card border-0 shadow-sm mb-3" style={{ borderLeft: "4px solid #6c63ff" }}>
                       <div className="card-body">
-                        <div className="d-flex justify-content-between mb-2">
-                          <h6 className="fw-bold mb-0">📅 {record.visitDate}</h6>
-                          <span className="badge bg-primary">Valid till: {record.validateTill}</span>
+                        {/* Header row */}
+                        <div className="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2">
+                          <h6 className="fw-bold mb-0">
+                            <span className="me-2">📅</span>{record.visitDate}
+                          </h6>
+                          <div className="d-flex align-items-center gap-2 flex-wrap">
+                            <span className="badge bg-primary rounded-pill">
+                              Valid till: {record.validateTill}
+                            </span>
+                            {/* Download PDF button */}
+                            <button
+                              className="btn btn-sm btn-outline-danger d-flex align-items-center gap-1"
+                              style={{ fontSize: "0.78rem", whiteSpace: "nowrap" }}
+                              onClick={() => handleDownloadPdf(record.petId, record.petMedicalId, record.diagnosis)}
+                              disabled={downloadingId === record.petMedicalId}
+                              title={`Download prescription PDF for: ${record.diagnosis}`}
+                            >
+                              {downloadingId === record.petMedicalId ? (
+                                <>
+                                  <span
+                                    className="spinner-border spinner-border-sm"
+                                    role="status"
+                                    aria-hidden="true"
+                                  ></span>
+                                  <span>Downloading…</span>
+                                </>
+                              ) : (
+                                <>
+                                  <i className="bi bi-file-earmark-pdf-fill"></i>
+                                  <span>Download PDF</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
                         </div>
+
+                        {/* Diagnosis */}
                         <p className="mb-2">
-                          <strong>Diagnosis:</strong> <span className="text-danger">{record.diagnosis}</span>
+                          <strong>Diagnosis:</strong>{" "}
+                          <span className="text-danger fw-semibold">{record.diagnosis}</span>
                         </p>
+
                         {record.allergies && (
                           <p className="mb-2">
                             <strong>Allergies:</strong> {record.allergies}
                           </p>
                         )}
+
                         <p className="mb-2">
                           <strong>Treatment:</strong> {record.treatmentSuggestions}
                         </p>
+
                         {record.prescriptions && record.prescriptions.length > 0 && (
-                          <div className="mt-2">
-                            <strong className="text-muted">Prescriptions:</strong>
+                          <div className="mt-2 p-2 rounded" style={{ background: "#f8f9ff", border: "1px solid #e0e0ff" }}>
+                            <strong className="text-muted">
+                              <i className="bi bi-capsule me-1"></i>Prescriptions:
+                            </strong>
                             <ul className="small mt-1 mb-0">
                               {record.prescriptions.map((med, midx) => (
                                 <li key={midx}>
-                                  <strong>{med.medicine}</strong> - {med.dosage} {med.frequency}x daily,  after {med.meal}, for {med.duration} days
+                                  <strong>{med.medicine}</strong> — {med.dosage},{" "}
+                                  {med.frequency}× daily, after {med.meal}, for {med.duration} days
                                 </li>
                               ))}
                             </ul>
