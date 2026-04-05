@@ -1,305 +1,231 @@
 import React, { useState } from "react";
 import { saveteAppointment } from "../../services/PetService";
+import { useFormSubmit } from "../../hooks/useFormSubmit";
+import SuccessMessage from "../SuccessMessage";
+import './forms.css';
 
 const TIME_OPTIONS = [
-  { label: "Morning", value: "morning" },
-  { label: "Afternoon", value: "afternoon" },
-  { label: "Evening", value: "evening" },
+  { label: "🌅 Morning (9 AM - 12 PM)", value: "morning" },
+  { label: "☀️ Afternoon (12 PM - 5 PM)", value: "afternoon" },
+  { label: "🌆 Evening (5 PM - 8 PM)", value: "evening" },
 ];
 
 const DoctorAppointmentForm = () => {
-  const [form, setForm] = useState({
+  const initialForm = {
     name: "",
     email: "",
     phone: "",
     date: "",
     time: "",
     reason: "",
-    address: "", // Added address field
-  });
-  const [errors, setErrors] = useState({});
-  const [showSuccess, setShowSuccess] = useState(false);
+    address: "",
+  };
+
+  const [form, setForm] = useState(initialForm);
+  
+  const { handleSubmit: submitForm, loading, showSuccess, errors, setShowSuccess } = useFormSubmit(
+    (data) => saveteAppointment(data),
+    {
+      resetForm: () => setForm(initialForm),
+    }
+  );
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: "" }); // Clear error on change
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setShowSuccess(false);
-    setErrors({}); // Clear previous errors
-
-    try {
-      await saveteAppointment(form);
-      setShowSuccess(true);
-      setForm({
-        name: "",
-        email: "",
-        phone: "",
-        date: "",
-        time: "",
-        reason: "",
-        address: "", // Reset address field
-      });
-    } catch (error) {
-      if (error.response && error.response.data) {
-        setErrors(error.response.data);
-      } else {
-        alert("Booking failed: " + (error.message || "Unknown error"));
-      }
-    }
+    await submitForm(form);
   };
 
+  if (showSuccess) {
+    return (
+      <SuccessMessage
+        status="appointment"
+        redirectTo="/dashboard"
+        delay={3000}
+      />
+    );
+  }
+
   return (
-    <div
-      style={{
-        background: "#f8f9fa",
-        borderRadius: "16px",
-        padding: "40px",
-        minHeight: "100%",
-        position: "relative",
-      }}
-    >
-      <form onSubmit={handleSubmit}>
-        <h2 className="mb-3 mt-3 text-center">
-          Book Doctor Appointment
-        </h2>
-        {showSuccess && (
-          <div className="alert alert-success text-center mb-3">
-            Appointment booked successfully!
-          </div>
-        )}
-
-        {/* Name */}
-        <div className={`form-group row ${errors.name ? "mb-1" : "mb-3"}`}>
-          <div className="col-2"></div>
-          <div className="col-8">
-            <div className="d-flex align-items-center">
-              <label
-                className="me-2 mb-0"
-                htmlFor="name"
-                style={{ minWidth: 110 }}
-              >
-                Full Name
-              </label>
-              <input
-                type="text"
-                className={`form-control ${errors.name ? "is-invalid" : ""}`}
-                id="name"
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-              />
-            </div>
-            {errors.name && (
-              <div className="invalid-feedback d-block mt-1">
-                {errors.name}
+    <div className="appointment-container">
+      <div className="container mt-5 pt-5 pb-5">
+        <div className="row">
+          <div className="col-lg-6 offset-lg-3 col-md-8 offset-md-2">
+            <div className="appointment-card">
+              {/* Header */}
+              <div className="form-header">
+                <h2 className="form-title">
+                  📅 Book Doctor Appointment
+                </h2>
+                <p className="form-subtitle">Schedule your pet's veterinary checkup</p>
               </div>
-            )}
-          </div>
-          <div className="col-2"></div>
-        </div>
 
-        {/* Email */}
-        <div className={`form-group row ${errors.email ? "mb-1" : "mb-3"}`}>
-          <div className="col-2"></div>
-          <div className="col-8">
-            <div className="d-flex align-items-center">
-              <label
-                className="me-2 mb-0"
-                htmlFor="email"
-                style={{ minWidth: 110 }}
-              >
-                Email address
-              </label>
-              <input
-                type="email"
-                className={`form-control ${errors.email ? "is-invalid" : ""}`}
-                id="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-              />
+              <form onSubmit={handleSubmit} className="modern-form">
+                <div className="form-section">
+                  <h5 className="section-title">
+                    <i className="bi bi-person-fill"></i> Your Information
+                  </h5>
+
+                  {/* Name */}
+                  <div className="form-group">
+                    <label className="form-label">
+                      <span>Full Name</span>
+                      <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className={`form-control ${errors.name ? "is-invalid" : ""}`}
+                      name="name"
+                      placeholder="Enter your full name"
+                      value={form.name}
+                      onChange={handleChange}
+                      required
+                    />
+                    {errors.name && <div className="invalid-feedback">{errors.name}</div>}
+                  </div>
+
+                  {/* Email */}
+                  <div className="form-group">
+                    <label className="form-label">
+                      <span>Email Address</span>
+                      <span className="required">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      className={`form-control ${errors.email ? "is-invalid" : ""}`}
+                      name="email"
+                      placeholder="Enter your email"
+                      value={form.email}
+                      onChange={handleChange}
+                      required
+                    />
+                    {errors.email && <div className="invalid-feedback">{errors.email}</div>}
+                  </div>
+
+                  {/* Phone */}
+                  <div className="form-group">
+                    <label className="form-label">
+                      <span>Phone Number</span>
+                      <span className="required">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      className={`form-control ${errors.phone ? "is-invalid" : ""}`}
+                      name="phone"
+                      placeholder="Enter your phone number"
+                      value={form.phone}
+                      onChange={handleChange}
+                      required
+                    />
+                    {errors.phone && <div className="invalid-feedback">{errors.phone}</div>}
+                  </div>
+
+                  {/* Address */}
+                  <div className="form-group">
+                    <label className="form-label">
+                      <span>Address</span>
+                      <span className="required">*</span>
+                    </label>
+                    <textarea
+                      className={`form-control ${errors.address ? "is-invalid" : ""}`}
+                      name="address"
+                      rows="2"
+                      placeholder="Enter your address"
+                      value={form.address}
+                      onChange={handleChange}
+                      required
+                    />
+                    {errors.address && <div className="invalid-feedback">{errors.address}</div>}
+                  </div>
+                </div>
+
+                <div className="form-section">
+                  <h5 className="section-title">
+                    <i className="bi bi-calendar-event"></i> Appointment Details
+                  </h5>
+
+                  {/* Date */}
+                  <div className="form-group">
+                    <label className="form-label">
+                      <span>Preferred Date</span>
+                      <span className="required">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      className={`form-control ${errors.date ? "is-invalid" : ""}`}
+                      name="date"
+                      value={form.date}
+                      onChange={handleChange}
+                      required
+                    />
+                    {errors.date && <div className="invalid-feedback">{errors.date}</div>}
+                  </div>
+
+                  {/* Time */}
+                  <div className="form-group">
+                    <label className="form-label">
+                      <span>Preferred Time</span>
+                      <span className="required">*</span>
+                    </label>
+                    <select
+                      className={`form-control ${errors.time ? "is-invalid" : ""}`}
+                      name="time"
+                      value={form.time}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Select a time slot</option>
+                      {TIME_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.time && <div className="invalid-feedback">{errors.time}</div>}
+                  </div>
+
+                  {/* Reason */}
+                  <div className="form-group">
+                    <label className="form-label">
+                      <span>Reason for Visit</span>
+                      <span className="required">*</span>
+                    </label>
+                    <textarea
+                      className={`form-control ${errors.reason ? "is-invalid" : ""}`}
+                      name="reason"
+                      rows="3"
+                      placeholder="Describe the reason for visit (e.g., vaccination, checkup, etc.)"
+                      value={form.reason}
+                      onChange={handleChange}
+                      required
+                    />
+                    {errors.reason && <div className="invalid-feedback">{errors.reason}</div>}
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  className="btn btn-primary btn-lg w-100 mt-4"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2"></span>
+                      Booking...
+                    </>
+                  ) : (
+                    "✓ Confirm Appointment"
+                  )}
+                </button>
+              </form>
             </div>
-            {errors.email && (
-              <div className="invalid-feedback d-block mt-1">
-                {errors.email}
-              </div>
-            )}
           </div>
-          <div className="col-2"></div>
         </div>
-
-        {/* Phone */}
-        <div className={`form-group row ${errors.phone ? "mb-1" : "mb-3"}`}>
-          <div className="col-2"></div>
-          <div className="col-8">
-            <div className="d-flex align-items-center">
-              <label
-                className="me-2 mb-0"
-                htmlFor="phone"
-                style={{ minWidth: 110 }}
-              >
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                className={`form-control ${errors.phone ? "is-invalid" : ""}`}
-                id="phone"
-                name="phone"
-                value={form.phone}
-                onChange={handleChange}
-              />
-            </div>
-            {errors.phone && (
-              <div className="invalid-feedback d-block mt-1">
-                {errors.phone}
-              </div>
-            )}
-          </div>
-          <div className="col-2"></div>
-        </div>
-
-        {/* Date */}
-        <div className={`form-group row ${errors.date ? "mb-1" : "mb-3"}`}>
-          <div className="col-2"></div>
-          <div className="col-8">
-            <div className="d-flex align-items-center">
-              <label
-                className="me-2 mb-0"
-                htmlFor="date"
-                style={{ minWidth: 110 }}
-              >
-                Appointment Date
-              </label>
-              <input
-                type="date"
-                className={`form-control ${errors.date ? "is-invalid" : ""}`}
-                id="date"
-                name="date"
-                value={form.date}
-                onChange={handleChange}
-              />
-            </div>
-            {errors.date && (
-              <div className="invalid-feedback d-block mt-1">
-                {errors.date}
-              </div>
-            )}
-          </div>
-          <div className="col-2"></div>
-        </div>
-
-        {/* Time */}
-        <div className={`form-group row ${errors.time ? "mb-1" : "mb-3"}`}>
-          <div className="col-2"></div>
-          <div className="col-8">
-            <div className="d-flex align-items-center">
-              <label
-                className="me-2 mb-0"
-                htmlFor="time"
-                style={{ minWidth: 110 }}
-              >
-                Preferred Time
-              </label>
-              <select
-                className={`form-select ${errors.time ? "is-invalid" : ""}`}
-                id="time"
-                name="time"
-                value={form.time}
-                onChange={handleChange}
-              >
-                <option value="">Select Time</option>
-                {TIME_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {errors.time && (
-              <div className="invalid-feedback d-block mt-1">
-                {errors.time}
-              </div>
-            )}
-          </div>
-          <div className="col-2"></div>
-        </div>
-
-        {/* Reason */}
-        <div className={`form-group row ${errors.reason ? "mb-1" : "mb-3"}`}>
-          <div className="col-2"></div>
-          <div className="col-8">
-            <div className="d-flex align-items-start">
-              <label
-                className="me-2 mb-0"
-                htmlFor="reason"
-                style={{ minWidth: 110, marginTop: "0.375rem" }}
-              >
-                Reason for Visit
-              </label>
-              <textarea
-                className={`form-control ${errors.reason ? "is-invalid" : ""}`}
-                id="reason"
-                name="reason"
-                rows="2"
-                value={form.reason}
-                onChange={handleChange}
-              />
-            </div>
-            {errors.reason && (
-              <div className="invalid-feedback d-block mt-1">
-                {errors.reason}
-              </div>
-            )}
-          </div>
-          <div className="col-2"></div>
-        </div>
-
-        {/* Address */}
-        <div className={`form-group row ${errors.address ? "mb-1" : "mb-3"}`}>
-          <div className="col-2"></div>
-          <div className="col-8">
-            <div className="d-flex align-items-start">
-              <label
-                className="me-2 mb-0"
-                htmlFor="address"
-                style={{ minWidth: 110, marginTop: "0.375rem" }}
-              >
-                Address
-              </label>
-              <textarea
-                className={`form-control ${errors.address ? "is-invalid" : ""}`}
-                id="address"
-                name="address"
-                rows="2"
-                value={form.address}
-                onChange={handleChange}
-              />
-            </div>
-            {errors.address && (
-              <div className="invalid-feedback d-block mt-1">
-                {errors.address}
-              </div>
-            )}
-          </div>
-          <div className="col-2"></div>
-        </div>
-
-        <div className="form-group row mt-3">
-          <div className="col-8"></div>
-          <div className="col-2">
-            <button
-              type="submit"
-              className="btn btn-primary w-100"
-            >
-              Book Appointment
-            </button>
-          </div>
-          <div className="col-2"></div>
-        </div>
-      </form>
+      </div>
     </div>
   );
 };

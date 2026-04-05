@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { searchOwnerDetailsByEmailOrPhone } from "../../services/OwnerService";
 import { registerPet } from "../../services/PetService";
+import { useFormSubmit } from "../../hooks/useFormSubmit";
+import SuccessMessage from "../SuccessMessage";
 
 const PET_TYPE_OPTIONS = ["Dog", "Cat", "Bird", "Other"];
 
@@ -33,6 +35,37 @@ const PetRegistrationForm = () => {
   const [errors, setErrors] = useState({});
   const [petPhoto, setPetPhoto] = useState(null);
   const [petPhotoPreview, setPetPhotoPreview] = useState(null);
+
+  const { handleSubmit: submitForm, loading, showSuccess, setShowSuccess } = useFormSubmit(
+    async (data) => {
+      if (!owner) {
+        throw new Error("Please search and select an owner before registering the pet.");
+      }
+      const petRegistrationDto = {
+        ...data,
+        otherPetType: data.petType === "Other" ? data.otherPetType : "",
+        ownerContact,
+      };
+      await registerPet(petRegistrationDto, petPhoto);
+    },
+    {
+      resetForm: () => {
+        setPetName("");
+        setPetType("");
+        setOtherPetType("");
+        setBreed("");
+        setSex("");
+        setColor("");
+        setDescription("");
+        setdob("");
+        setWeight("");
+        setOwner(null);
+        setOwnerContact("");
+        setPetPhoto(null);
+        setPetPhotoPreview(null);
+      },
+    }
+  );
 
   const handleOwnerSearch = async (e) => {
     e.preventDefault();
@@ -88,7 +121,8 @@ const PetRegistrationForm = () => {
       );
       return;
     }
-    const petRegistrationDto = {
+
+    const petData = {
       petName,
       petType,
       otherPetType: petType === "Other" ? otherPetType : "",
@@ -100,21 +134,19 @@ const PetRegistrationForm = () => {
       weight,
       ownerContact,
     };
-    try {
-      setErrors({});
-      const result = await registerPet(petRegistrationDto, petPhoto); // Pass photo!
-      if (result) {
-        alert("Pet registered successfully!");
-        // Optionally reset form here
-      }
-    } catch (error) {
-      if (error.response && error.response.data) {
-        setErrors(error.response.data);
-      } else {
-        alert("Registration failed: " + error.message);
-      }
-    }
+
+    await submitForm(petData);
   };
+
+  if (showSuccess) {
+    return (
+      <SuccessMessage
+        status="pet"
+        redirectTo="/dashboard"
+        delay={3000}
+      />
+    );
+  }
 
   return (
     <div
@@ -550,9 +582,16 @@ const PetRegistrationForm = () => {
             <button
               type="submit"
               className="btn btn-primary w-100"
-              disabled={!owner}
+              disabled={!owner || loading}
             >
-              Register Pet
+              {loading ? (
+                <>
+                  <span className="spinner-border spinner-border-sm me-2"></span>
+                  Registering...
+                </>
+              ) : (
+                "Register Pet"
+              )}
             </button>
           </div>
           <div className="col-2"></div>

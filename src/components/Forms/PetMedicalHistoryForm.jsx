@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { savePetMedicalRecord } from "../../services/PetService";
 import { searchOwnerDetailsByEmailOrPhone } from "../../services/OwnerService";
+import { useFormSubmit } from "../../hooks/useFormSubmit";
+import SuccessMessage from "../SuccessMessage";
 
 // const MOCK_OWNERS = [
 //   {
@@ -80,8 +82,37 @@ const PetMedicalHistoryForm = () => {
   ]);
   const [treatmentSuggestions, setTreatmentSuggestions] = useState("");
   const [errors, setErrors] = useState({});
-  const [showSuccess, setShowSuccess] = useState(false);
   const [validateTill, setValidateTill] = useState("");
+
+  const initialPrescriptions = [
+    {
+      medicine: "",
+      dosage: "",
+      frequency: "",
+      duration: "",
+      instructions: "",
+      times: [],
+      meal: "any",
+    },
+  ];
+
+  const { handleSubmit: submitForm, loading, showSuccess, setShowSuccess } = useFormSubmit(
+    (formData) => savePetMedicalRecord(formData),
+    {
+      resetForm: () => {
+        setAllergies("");
+        setDiagnosis("");
+        setPrescriptions(initialPrescriptions);
+        setTreatmentSuggestions("");
+        setValidateTill("");
+        setSearchValue("");
+        setOwner(null);
+        setPetList([]);
+        setSelectedPet("");
+        setPetInfo(null);
+      },
+    }
+  );
 
   // Mock search
   const handleOwnerSearch = async (e) => {
@@ -153,9 +184,6 @@ const PetMedicalHistoryForm = () => {
   // Print all details in handleSubmit
   const handleSubmit = async (e) => {
     e.preventDefault();
-    let newErrors = {};
-
-    // Prepare the data object
     const formData = {
       ownerContact : searchValue,
       allergies,
@@ -164,17 +192,19 @@ const PetMedicalHistoryForm = () => {
       treatmentSuggestions,
       validateTill,
       petId: selectedPet,
-      validateTill      
     };
-
-    try {
-      
-      const response = await savePetMedicalRecord(formData);
-      setShowSuccess(true);
-    } catch (error) {
-      setErrors(newErrors);
-    }
+    await submitForm(formData);
   };
+
+  if (showSuccess) {
+    return (
+      <SuccessMessage
+        status="medical"
+        redirectTo="/dashboard"
+        delay={3000}
+      />
+    );
+  }
 
   return (
     <div
@@ -190,12 +220,6 @@ const PetMedicalHistoryForm = () => {
         <h2 className="mb-3 mt-3 text-center">
           Pet Medical History & Prescription
         </h2>
-
-        {showSuccess && (
-          <div className="alert alert-success text-center mb-3">
-            Medical history saved successfully!
-          </div>
-        )}
 
         {/* Owner Search */}
         {!owner && (
@@ -606,8 +630,16 @@ const PetMedicalHistoryForm = () => {
             <button
               type="submit"
               className="btn btn-primary w-100 button-color"
+              disabled={loading}
             >
-              Save Medical History
+              {loading ? (
+                <>
+                  <span className="spinner-border spinner-border-sm me-2"></span>
+                  Saving...
+                </>
+              ) : (
+                "Save Medical History"
+              )}
             </button>
           </div>
           <div className="col-2"></div>

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { searchOwnerDetailsByEmailOrPhone } from "../../services/OwnerService";
 import { saveVaccinationRecord } from "../../services/PetService";
+import { useFormSubmit } from "../../hooks/useFormSubmit";
+import SuccessMessage from "../SuccessMessage";
 
 const vaccinationOptions = [
   "Rabies",
@@ -27,7 +29,25 @@ const PetVaccinationRecord = () => {
   const [validTill, setValidTill] = useState("");
   const [errors, setErrors] = useState({});
   const [vaccineName, setVaccineName] = useState("");
- 
+
+  const { handleSubmit: submitForm, loading, showSuccess } = useFormSubmit(
+    (formData) => saveVaccinationRecord(formData),
+    {
+      resetForm: () => {
+        setVaccination("");
+        setBrandAndDoses("");
+        setVaccinationDate(new Date().toISOString().slice(0, 10));
+        setWeight("");
+        setDurationMonths(12);
+        setValidTill("");
+        setVaccineName("");
+        setSearchType("email");
+        setSearchValue("");
+        setPetList([]);
+        setSelectedPet("");
+      },
+    }
+  );
 
   // Calculate valid till date whenever vaccinationDate or durationMonths changes
   useEffect(() => {
@@ -72,11 +92,8 @@ const PetVaccinationRecord = () => {
   };
 
   // Submit handler
-  const handleSubmit = async  (e) => {
-    let response = {};
-    try { 
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrors({});
     const formData = {
       petId: selectedPet,
       ownerContact: searchValue,
@@ -88,11 +105,18 @@ const PetVaccinationRecord = () => {
       weight,
       validTill,
     };
-   response = await saveVaccinationRecord(formData);
-    } catch (error) { 
-    setErrors(error.response.data);
-    }
-    };
+    await submitForm(formData);
+  };
+
+  if (showSuccess) {
+    return (
+      <SuccessMessage
+        status="vaccination"
+        redirectTo="/dashboard"
+        delay={3000}
+      />
+    );
+  }
 
   return (
     <div
@@ -392,8 +416,15 @@ const PetVaccinationRecord = () => {
         <div className="form-group row mt-3">
           <div className="col-8"></div>
           <div className="col-2">
-            <button type="submit" className="btn btn-primary w-100">
-              Save Record
+            <button type="submit" className="btn btn-primary w-100" disabled={loading}>
+              {loading ? (
+                <>
+                  <span className="spinner-border spinner-border-sm me-2"></span>
+                  Saving...
+                </>
+              ) : (
+                "Save Record"
+              )}
             </button>
           </div>
           <div className="col-2"></div>

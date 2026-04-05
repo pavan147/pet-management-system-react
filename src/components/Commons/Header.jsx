@@ -1,34 +1,27 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./Header.css";
-import { logout } from "../../services/VeterinaryRegistrationService";
-import { useNavigate } from "react-router-dom";
-import { isUserLoggedIn } from "../../services/VeterinaryRegistrationService";
+import { logout, isUserLoggedIn } from "../../services/VeterinaryRegistrationService";
 
 const Header = () => {
-
   const isAuth = isUserLoggedIn();
+  const navigate = useNavigate();
 
-  const navigator = useNavigate();
-
-  function handleLogout() {
+  const handleLogout = () => {
     logout();
-    navigator('/login')
-  }
-  function redirectToLogin() {
-    navigator('/login')
+    navigate('/login')
   }
 
   return (
     <div>
-      <nav class="navbar navbar-expand-lg bg-dark navbar-dark fixed-top custom-header-bg">
-        <div class="container-fluid">
-          <a class="navbar-brand" href="#">
-            Navbar
-          </a>
+      <nav className="navbar navbar-expand-lg navbar-dark fixed-top modern-header">
+        <div className="container-fluid px-4">
+          <Link className="navbar-brand fw-bold fs-5" to="/dashboard">
+            🐾 PetCare Pro
+          </Link>
 
           <button
-            class="navbar-toggler"
+            className="navbar-toggler border-0"
             type="button"
             data-bs-toggle="collapse"
             data-bs-target="#navbarSupportedContent"
@@ -36,131 +29,90 @@ const Header = () => {
             aria-expanded="false"
             aria-label="Toggle navigation"
           >
-            <span class="navbar-toggler-icon"></span>
+            <span className="navbar-toggler-icon"></span>
           </button>
-          <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-              <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="#">
-                  Home
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">
-                  Link
-                </a>
-              </li>
-              <li class="nav-item dropdown">
-                <a
-                  class="nav-link dropdown-toggle"
-                  href="#"
-                  role="button"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
-                  Dropdown
-                </a>
-                <ul class="dropdown-menu">
-                  {isAuth && (
-                    <>
+          
+          <div className="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul className="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center gap-lg-2">
+              {isAuth && (
+                <>
+                  <li className="nav-item">
+                    <Link className="nav-link" to="/dashboard">
+                      📊 Dashboard
+                    </Link>
+                  </li>
+                  <li className="nav-item dropdown">
+                    <a
+                      className="nav-link dropdown-toggle"
+                      href="#"
+                      role="button"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                    >
+                      📋 Services
+                    </a>
+                    <ul className="dropdown-menu dropdown-menu-end modern-dropdown">
                       <li>
                         <Link className="dropdown-item" to="/register">
-                          Owner Registration
-                        </Link>
-                      </li>
-
-                      <li>
-                        <Link
-                          className="dropdown-item"
-                          to="/pet-vaccination-record"
-                        >
-                          Pet Vaccination Record
+                          👤 Owner Registration
                         </Link>
                       </li>
                       <li>
                         <Link className="dropdown-item" to="/add-pet">
-                          Add Pet
+                          🐕 Add Pet
                         </Link>
                       </li>
-
                       <li>
-                        <Link
-                          className="dropdown-item"
-                          to="/pet-medical"
-                        >
-                          pet-medical
+                        <Link className="dropdown-item" to="/pet-vaccination-record">
+                          💉 Pet Vaccination
                         </Link>
                       </li>
-
-                       <li>
-                        <Link
-                          className="dropdown-item"
-                          to="/view-appointment"
-                        >
-                         view-appointment
-                        </Link>
-                      </li>
-                      </>
- )}   
                       <li>
-                        <Link
-                          className="dropdown-item"
-                          to="/book-appointment"
-                        >
-                          book-appointment
+                        <Link className="dropdown-item" to="/pet-medical">
+                          📝 Medical History
                         </Link>
                       </li>
-                    
-                 
-
-
-                  <li>
-                    <hr class="dropdown-divider" />
+                      <li>
+                        <hr className="dropdown-divider" />
+                      </li>
+                      <li>
+                        <Link className="dropdown-item" to="/book-appointment">
+                          📅 Book Appointment
+                        </Link>
+                      </li>
+                    </ul>
                   </li>
-                  <li>
-                    <a class="dropdown-item" href="#">
-                      Something else here
-                    </a>
-                  </li>
-                </ul>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link disabled" aria-disabled="true">
-                  Disabled
-                </a>
-              </li>
-            </ul>
-            <form class="d-flex" role="search">
-              <input
-                class="form-control me-2"
-                type="search"
-                placeholder="Search"
-                aria-label="Search"
-              />
-              {isAuth &&
-                <li className='nav-item'>
+                </>
+              )}
+              
+              {!isAuth && (
+                <li className="nav-item">
+                  <Link className="nav-link" to="/book-appointment">
+                    📅 Book Appointment
+                  </Link>
+                </li>
+              )}
+
+              {isAuth && (
+                <li className="nav-item">
                   <button
-                    className="btn btn-outline-success"
+                    className="btn btn-logout"
                     type="button"
                     onClick={handleLogout}
                   >
-                    Logout
+                    🚪 Logout
                   </button>
                 </li>
-              }
+              )}
 
-              {!isAuth &&
-                <li className='nav-item'>
-                  <button
-                    className="btn btn-outline-success"
-                    type="button"
-                    onClick={redirectToLogin}
-                  >
-                    Login
-                  </button>
+              {!isAuth && (
+                <li className="nav-item">
+                  <Link className="btn btn-logout" to="/login">
+                    🔐 Login
+                  </Link>
                 </li>
-              }
-            </form>
+              )}
+            </ul>
           </div>
         </div>
       </nav>
