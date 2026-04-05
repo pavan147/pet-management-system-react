@@ -48,6 +48,20 @@ export const registerPet = async (petRegistrationDto, petPhoto) => {
   }
 };
 
+// Get Dashboard Data
+export const getDashboardData = async () => {
+  try {
+    const response = await axios.get(`${BASE_URL}/dashboard`);
+    if (!response || response.status !== 200) {
+      throw new Error("Failed to fetch dashboard data");
+    }
+    return response.data;
+  } catch (error) {
+    console.error("Dashboard API error:", error);
+    throw error;
+  }
+};
+
 
 
 // Service function to save registration
