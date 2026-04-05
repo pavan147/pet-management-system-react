@@ -57,3 +57,22 @@ export const isAdminUser = () => {
     }
 
 }
+
+export const isReceptionistUser = () => {
+    let role = sessionStorage.getItem("role");
+    return role != null && role === 'ROLE_RECEPTIONIST';
+}
+
+export const isDoctorUser = () => {
+    let role = sessionStorage.getItem("role");
+    return role != null && role === 'ROLE_DOCTOR';
+}
+
+export const isPetOwnerUser = () => {
+    let role = sessionStorage.getItem("role");
+    return role != null && role === 'ROLE_PET_OWNER';
+}
+
+export const getUserRole = () => {
+    return sessionStorage.getItem("role");
+}

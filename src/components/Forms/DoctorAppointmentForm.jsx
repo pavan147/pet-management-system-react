@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { saveteAppointment } from "../../services/PetService";
+import { saveAppointment } from "../../services/PetService";
 import { useFormSubmit } from "../../hooks/useFormSubmit";
 import SuccessMessage from "../SuccessMessage";
 import './forms.css';
@@ -24,7 +24,7 @@ const DoctorAppointmentForm = () => {
   const [form, setForm] = useState(initialForm);
   
   const { handleSubmit: submitForm, loading, showSuccess, errors, setShowSuccess } = useFormSubmit(
-    (data) => saveteAppointment(data),
+    (data) => saveAppointment(data),
     {
       resetForm: () => setForm(initialForm),
     }

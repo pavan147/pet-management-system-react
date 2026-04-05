@@ -207,444 +207,501 @@ const PetMedicalHistoryForm = () => {
   }
 
   return (
-    <div
-      style={{
-        background: "#f8f9fa",
-        borderRadius: "16px",
-        padding: "40px",
-        minHeight: "100%",
-        position: "relative",
-      }}
-    >
-      <form onSubmit={handleSubmit}>
-        <h2 className="mb-3 mt-3 text-center">
-          Pet Medical History & Prescription
-        </h2>
-
-        {/* Owner Search */}
-        {!owner && (
-          <div className="form-group row mb-3">
-            <div className="col-2"></div>
-            <div className="col-8">
-              <div className="d-flex align-items-center">
-                <label className="me-2 mb-0" style={{ minWidth: 110 }}>
-                  Owner (Phone/Email)
-                </label>
-                <input
-                  type="text"
-                  className="form-control me-2"
-                  placeholder="Enter owner's phone or email"
-                  value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
-                  disabled={!!owner}
-                />
-                <select
-                  className="form-select w-auto me-2"
-                  value={searchType}
-                  onChange={(e) => setSearchType(e.target.value)}
-                  disabled={!!owner}
-                >
-                  <option value="email">Email</option>
-                  <option value="phone">Phone</option>
-                </select>
-                <button
-                  className="btn btn-outline-secondary btn-sm"
-                  onClick={handleOwnerSearch}
-                  disabled={!!owner}
-                  type="button"
-                >
-                  Search Owner
-                </button>
-              </div>
-              {errors.searchValue && (
-                <div className="invalid-feedback d-block mt-1">
-                  {errors.searchValue}
-                </div>
-              )}
-            </div>
-            <div className="col-2"></div>
+    <div className="registration-container">
+      <div className="registration-gradient-bg"></div>
+      <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "40px 20px" }}>
+        <div className="registration-card">
+          {/* Form Header */}
+          <div className="form-header">
+            <h1 className="form-title">
+              <i className="bi bi-stethoscope me-2"></i>
+              Pet Medical History & Prescription
+            </h1>
+            <p className="form-subtitle">
+              Complete medical records and prescription for pet care
+            </p>
           </div>
-        )}
 
-        {/* Owner Info Card */}
-        {owner && (
-          <div className="form-group row mb-3">
-            <div className="col-2"></div>
-            <div className="col-8">
-              <div className="card border-success shadow-sm">
-                <div className="card-body">
-                  <h5 className="card-title text-success mb-3">
-                    <i className="bi bi-person-check-fill me-2"></i>
-                    Owner Found
-                  </h5>
-                  <div className="me-2">
-                    <strong>Name:</strong>{" "}
-                    <span className="ms-2">{owner.ownerName}</span>
-                  </div>
-                  <div className="me-2">
-                    <strong>Email:</strong>{" "}
-                    <span className="ms-2">{owner.email}</span>
-                  </div>
-                  <div className="mb-2">
-                    <strong>Phone Number:</strong>{" "}
-                    <span className="ms-2">{owner.phoneNumber}</span>
-                  </div>
-                  <div className="mb-2">
-                    <strong>Address:</strong>{" "}
-                    <span className="ms-2">{owner.address}</span>
-                  </div>
-                  <button
-                    className="btn btn-link btn-sm mt-2 p-0"
-                    type="button"
-                    onClick={() => {
-                      setOwner(null);
-                      setSearchValue("");
-                      setPetList([]);
-                      setSelectedPet("");
-                      setPetInfo(null);
-                    }}
-                  >
-                    <i className="bi bi-arrow-left me-1"></i>
-                    Search another owner
-                  </button>
+          <form onSubmit={handleSubmit}>
+            {/* ========== SECTION 1: OWNER SEARCH ========== */}
+            {!owner && (
+              <div className="form-section">
+                <div className="section-title">
+                  <i className="bi bi-search"></i> Step 1: Find Owner
                 </div>
-              </div>
-            </div>
-            <div className="col-2"></div>
-          </div>
-        )}
-
-        {/* Pet Dropdown & Info */}
-        {petList.length > 0 && (
-          <div className="form-group row mb-3">
-            <div className="col-2"></div>
-            <div className="col-8">
-              <div className="d-flex align-items-center mb-2">
-                <label className="me-2 mb-0" style={{ minWidth: 110 }}>
-                  Select Pet
-                </label>
-                <select
-                  className={`form-select ${errors.selectedPet ? "is-invalid" : ""}`}
-                  style={{ minWidth: 120, maxWidth: 200 }}
-                  value={selectedPet}
-                  onChange={(e) => handleSelectPet(e.target.value)}
-                >
-                  <option value="">Select Pet</option>
-                  {petList.map((pet) => (
-                    <option key={pet.id} value={pet.id}>
-                      {pet.petName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              {errors.selectedPet && (
-                <div className="invalid-feedback d-block">
-                  {errors.selectedPet}
+                <div className="mb-3">
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: "12px", alignItems: "end" }}>
+                    <div>
+                      <label className="form-label">Owner's Contact Information</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Enter email or phone number"
+                        value={searchValue}
+                        onChange={(e) => setSearchValue(e.target.value)}
+                        onKeyPress={(e) => e.key === "Enter" && handleOwnerSearch(e)}
+                      />
+                      {errors.searchValue && (
+                        <div className="invalid-feedback d-block mt-2">
+                          <i className="bi bi-exclamation-circle me-2"></i>
+                          {errors.searchValue}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      className="btn"
+                      style={{
+                        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                        color: "white",
+                        border: "none",
+                        fontWeight: 600,
+                        padding: "12px 24px",
+                      }}
+                      onClick={handleOwnerSearch}
+                      type="button"
+                    >
+                      <i className="bi bi-search me-2"></i>Search
+                    </button>
+                  </div>
                 </div>
-              )}
-              {petInfo && (
-                <div className="card p-3">
-                  <b>Pet Name:</b> {petInfo.petName} <br />
-                  <b>Species:</b> {petInfo.species} <br />
-                  <b>Breed:</b> {petInfo.breed} <br />
-                  <b>Age:</b> {petInfo.age}
-                </div>
-              )}
-            </div>
-            <div className="col-2"></div>
-          </div>
-        )}
-
-        {/* Allergies */}
-        <div className="form-group row mb-3">
-          <div className="col-2"></div>
-          <div className="col-8">
-            <div className="d-flex align-items-start">
-              <label
-                className="me-2 mb-0"
-                style={{ minWidth: 110, marginTop: "0.375rem" }}
-              >
-                Allergies
-              </label>
-              <textarea
-                className="form-control"
-                rows="2"
-                placeholder="List allergies (comma separated or one per line)"
-                value={allergies}
-                onChange={(e) => setAllergies(e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="col-2"></div>
-        </div>
-
-        {/* Diagnosis */}
-        <div className={`form-group row ${errors.diagnosis ? "mb-1" : "mb-3"}`}>
-          <div className="col-2"></div>
-          <div className="col-8">
-            <div className="d-flex align-items-start">
-              <label
-                className="me-2 mb-0"
-                style={{ minWidth: 110, marginTop: "0.375rem" }}
-              >
-                Diagnosis
-              </label>
-              <textarea
-                className={`form-control ${errors.diagnosis ? "is-invalid" : ""}`}
-                rows="2"
-                placeholder="Enter diagnosis/medical history"
-                value={diagnosis}
-                onChange={(e) => setDiagnosis(e.target.value)}
-              />
-            </div>
-            {errors.diagnosis && (
-              <div className="invalid-feedback d-block mt-1">
-                {errors.diagnosis}
               </div>
             )}
-          </div>
-          <div className="col-2"></div>
-        </div>
 
-        {/* Prescription Section */}
-        <div className="form-group row mb-3">
-          <div className="col-2"></div>
-          <div className="col-8">
-            <h5 className="mb-3 fw-bold">Prescription</h5>
-            {prescriptions.map((pres, idx) => (
-              <div
-                key={idx}
-                className="mb-4 p-3"
-                style={{
-                  background: "#fff",
-                  borderRadius: "8px",
-                  border: "1px solid #e0e0e0",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
-                }}
-              >
-                {/* Row 1: Medicine & Dosage */}
-                <div className="row mb-2">
-                  <div className="col-md-6 mb-2 mb-md-0">
-                    <label className="fw-bold mb-1">Medicine Name</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="Enter medicine name"
-                      value={pres.medicine}
-                      onChange={(e) =>
-                        handlePrescriptionChange(
-                          idx,
-                          "medicine",
-                          e.target.value,
-                        )
-                      }
-                    />
-                  </div>
-                  <div className="col-md-6">
-                    <label className="fw-bold mb-1">Dosage</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="e.g., 5ml, 1 tab"
-                      value={pres.dosage}
-                      onChange={(e) =>
-                        handlePrescriptionChange(idx, "dosage", e.target.value)
-                      }
-                    />
-                  </div>
+            {/* ========== SECTION 2: OWNER INFO ========== */}
+            {owner && (
+              <div className="form-section" style={{ borderColor: "#10b981", borderWidth: "2px" }}>
+                <div className="section-title">
+                  <i className="bi bi-person-check-fill" style={{ color: "#10b981" }}></i> Owner Information
                 </div>
-                {/* Row 2: Frequency & Duration */}
-                <div className="row mb-2">
-                  <div className="col-md-6 mb-2 mb-md-0">
-                    <label className="fw-bold mb-1">Frequency (per day)</label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      placeholder="e.g., 2"
-                      value={pres.frequency}
-                      onChange={(e) =>
-                        handlePrescriptionChange(
-                          idx,
-                          "frequency",
-                          e.target.value,
-                        )
-                      }
-                      min={1}
-                    />
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "20px",
+                  marginBottom: "16px"
+                }}>
+                  <div>
+                    <label className="form-label small">Owner Name</label>
+                    <div style={{ padding: "10px", background: "#f0fdf4", borderRadius: "8px", fontWeight: 500 }}>
+                      {owner.ownerName}
+                    </div>
                   </div>
-                  <div className="col-md-6">
-                    <label className="fw-bold mb-1">Duration (days)</label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      placeholder="e.g., 7"
-                      value={pres.duration}
-                      onChange={(e) =>
-                        handlePrescriptionChange(
-                          idx,
-                          "duration",
-                          e.target.value,
-                        )
-                      }
-                      min={1}
-                    />
+                  <div>
+                    <label className="form-label small">Phone Number</label>
+                    <div style={{ padding: "10px", background: "#f0fdf4", borderRadius: "8px", fontWeight: 500 }}>
+                      {owner.phoneNumber}
+                    </div>
                   </div>
-                </div>
-                {/* Row 3: Instructions & Time of Day */}
-                <div className="row mb-2">
-                  <div className="col-md-6 mb-2 mb-md-0">
-                    <label className="fw-bold mb-1">Instructions</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="Special instructions"
-                      value={pres.instructions}
-                      onChange={(e) =>
-                        handlePrescriptionChange(
-                          idx,
-                          "instructions",
-                          e.target.value,
-                        )
-                      }
-                    />
+                  <div>
+                    <label className="form-label small">Email</label>
+                    <div style={{ padding: "10px", background: "#f0fdf4", borderRadius: "8px", fontWeight: 500 }}>
+                      {owner.email}
+                    </div>
                   </div>
-                  <div className="col-md-6">
-                    <label className="fw-bold mb-1">Time of Day</label>
-                    <div className="d-flex flex-wrap">
-                      {TIME_OPTIONS.map((opt) => (
-                        <div key={opt.value} className="form-check me-3">
-                          <input
-                            className="form-check-input"
-                            type="checkbox"
-                            id={`time-${idx}-${opt.value}`}
-                            checked={pres.times.includes(opt.value)}
-                            onChange={() => handleTimeChange(idx, opt.value)}
-                          />
-                          <label
-                            className="form-check-label"
-                            htmlFor={`time-${idx}-${opt.value}`}
-                          >
-                            {opt.label}
-                          </label>
-                        </div>
-                      ))}
+                  <div>
+                    <label className="form-label small">Address</label>
+                    <div style={{ padding: "10px", background: "#f0fdf4", borderRadius: "8px", fontWeight: 500 }}>
+                      {owner.address}
                     </div>
                   </div>
                 </div>
-                {/* Row 4: Meal & Remove button */}
-                <div className="row align-items-center">
-                  <div className="col-md-6 mb-2 mb-md-0">
-                    <label className="fw-bold mb-1">Meal Timing</label>
-                    <select
-                      className="form-select"
-                      value={pres.meal}
-                      onChange={(e) =>
-                        handlePrescriptionChange(idx, "meal", e.target.value)
-                      }
-                    >
-                      {MEAL_OPTIONS.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
+                <button
+                  className="btn btn-sm"
+                  style={{
+                    border: "1px solid #667eea",
+                    color: "#667eea",
+                    background: "transparent",
+                    fontWeight: 600,
+                  }}
+                  type="button"
+                  onClick={() => {
+                    setOwner(null);
+                    setSearchValue("");
+                    setPetList([]);
+                    setSelectedPet("");
+                    setPetInfo(null);
+                  }}
+                >
+                  <i className="bi bi-arrow-left me-2"></i>Change Owner
+                </button>
+              </div>
+            )}
+
+            {/* ========== SECTION 3: PET SELECTION ========== */}
+            {petList.length > 0 && (
+              <div className="form-section">
+                <div className="section-title">
+                  <i className="bi bi-paw-fill"></i> Step 2: Select Pet
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Select a Pet</label>
+                  <select
+                    className={`form-control ${errors.selectedPet ? "is-invalid" : ""}`}
+                    value={selectedPet}
+                    onChange={(e) => handleSelectPet(e.target.value)}
+                  >
+                    <option value="">-- Choose Pet --</option>
+                    {petList.map((pet) => (
+                      <option key={pet.id} value={pet.id}>
+                        🐾 {pet.petName} ({pet.species} - {pet.breed})
+                      </option>
+                    ))}
+                  </select>
+                  {errors.selectedPet && (
+                    <div className="invalid-feedback d-block">
+                      {errors.selectedPet}
+                    </div>
+                  )}
+                </div>
+
+                {/* Pet Information Card */}
+                {petInfo && (
+                  <div style={{
+                    padding: "16px",
+                    background: "linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%)",
+                    borderRadius: "12px",
+                    border: "1px solid #667eea",
+                    marginTop: "12px"
+                  }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "16px" }}>
+                      <div>
+                        <div style={{ fontSize: "12px", color: "#667eea", fontWeight: 600, marginBottom: "4px" }}>PET NAME</div>
+                        <div style={{ fontSize: "16px", fontWeight: 700, color: "#1f2937" }}>
+                          {petInfo.petName}
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: "12px", color: "#667eea", fontWeight: 600, marginBottom: "4px" }}>SPECIES</div>
+                        <div style={{ fontSize: "16px", fontWeight: 700, color: "#1f2937" }}>
+                          {petInfo.species}
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: "12px", color: "#667eea", fontWeight: 600, marginBottom: "4px" }}>BREED</div>
+                        <div style={{ fontSize: "16px", fontWeight: 700, color: "#1f2937" }}>
+                          {petInfo.breed}
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: "12px", color: "#667eea", fontWeight: 600, marginBottom: "4px" }}>AGE</div>
+                        <div style={{ fontSize: "16px", fontWeight: 700, color: "#1f2937" }}>
+                          {petInfo.age} years
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ========== SECTION 4: MEDICAL INFORMATION ========== */}
+            {owner && selectedPet && (
+              <>
+                <div className="form-section">
+                  <div className="section-title">
+                    <i className="bi bi-clipboard-pulse"></i> Step 3: Medical History
                   </div>
 
-                  <div className="col-md-6 text-md-end">
-                    {prescriptions.length > 1 && (
-                      <button
-                        type="button"
-                        className="btn btn-danger btn-sm mt-3 mt-md-0"
-                        onClick={() => handleRemovePrescription(idx)}
-                      >
-                        Remove
-                      </button>
+                  {/* Allergies */}
+                  <div className="form-group">
+                    <label className="form-label">
+                      <i className="bi bi-exclamation-triangle me-2" style={{ color: "#f59e0b" }}></i>
+                      Allergies
+                    </label>
+                    <textarea
+                      className="form-control"
+                      rows="2"
+                      placeholder="List allergies separated by commas or one per line (e.g., Penicillin, Dairy, Wheat)"
+                      value={allergies}
+                      onChange={(e) => setAllergies(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Diagnosis */}
+                  <div className="form-group">
+                    <label className="form-label">
+                      <i className="bi bi-stethoscope me-2" style={{ color: "#0dcaf0" }}></i>
+                      Diagnosis <span className="required">*</span>
+                    </label>
+                    <textarea
+                      className={`form-control ${errors.diagnosis ? "is-invalid" : ""}`}
+                      rows="3"
+                      placeholder="Describe the pet's condition, symptoms, and medical findings..."
+                      value={diagnosis}
+                      onChange={(e) => setDiagnosis(e.target.value)}
+                    />
+                    {errors.diagnosis && (
+                      <div className="invalid-feedback d-block">
+                        {errors.diagnosis}
+                      </div>
                     )}
                   </div>
                 </div>
-              </div>
-            ))}
-            <button
-              type="button"
-              className="btn btn-outline-primary btn-sm"
-              onClick={handleAddPrescription}
-            >
-              Add Medicine
-            </button>
-            {errors.prescriptions && (
-              <div className="invalid-feedback d-block mt-1">
-                {errors.prescriptions}
-              </div>
+
+                {/* ========== SECTION 5: PRESCRIPTIONS ========== */}
+                <div className="form-section">
+                  <div className="section-title">
+                    <i className="bi bi-capsule me-2"></i>
+                    Step 4: Prescriptions ({prescriptions.length})
+                  </div>
+
+                  <div style={{ marginBottom: "20px" }}>
+                    {prescriptions.map((pres, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          background: "#ffffff",
+                          borderRadius: "12px",
+                          border: "2px solid #e5e7eb",
+                          padding: "20px",
+                          marginBottom: "16px",
+                          transition: "all 250ms ease",
+                        }}
+                        className="medicine-card"
+                      >
+                        <div style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          marginBottom: "16px",
+                          paddingBottom: "12px",
+                          borderBottom: "1px solid #e5e7eb",
+                        }}>
+                          <h6 style={{ margin: 0, color: "#667eea", fontWeight: 700 }}>
+                            <i className="bi bi-capsule"></i> Medicine #{idx + 1}
+                          </h6>
+                          {prescriptions.length > 1 && (
+                            <button
+                              type="button"
+                              className="btn btn-sm"
+                              style={{
+                                background: "#fee2e2",
+                                color: "#ef4444",
+                                border: "none",
+                                fontWeight: 600,
+                              }}
+                              onClick={() => handleRemovePrescription(idx)}
+                            >
+                              <i className="bi bi-trash3 me-1"></i>Remove
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Row 1: Medicine & Dosage */}
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+                          <div>
+                            <label className="form-label small">Medicine Name <span className="required">*</span></label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              placeholder="e.g., Amoxicillin, Aspirin"
+                              value={pres.medicine}
+                              onChange={(e) =>
+                                handlePrescriptionChange(idx, "medicine", e.target.value)
+                              }
+                            />
+                          </div>
+                          <div>
+                            <label className="form-label small">Dosage <span className="required">*</span></label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              placeholder="e.g., 5ml, 1 tab, 250mg"
+                              value={pres.dosage}
+                              onChange={(e) =>
+                                handlePrescriptionChange(idx, "dosage", e.target.value)
+                              }
+                            />
+                          </div>
+                        </div>
+
+                        {/* Row 2: Frequency & Duration */}
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+                          <div>
+                            <label className="form-label small">Frequency (per day) <span className="required">*</span></label>
+                            <input
+                              type="number"
+                              className="form-control"
+                              placeholder="1, 2, 3, etc."
+                              value={pres.frequency}
+                              onChange={(e) =>
+                                handlePrescriptionChange(idx, "frequency", e.target.value)
+                              }
+                              min={1}
+                            />
+                          </div>
+                          <div>
+                            <label className="form-label small">Duration (days) <span className="required">*</span></label>
+                            <input
+                              type="number"
+                              className="form-control"
+                              placeholder="7, 14, 30, etc."
+                              value={pres.duration}
+                              onChange={(e) =>
+                                handlePrescriptionChange(idx, "duration", e.target.value)
+                              }
+                              min={1}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Row 3: Time of Day */}
+                        <div style={{ marginBottom: "16px" }}>
+                          <label className="form-label small">Time of Day <span className="required">*</span></label>
+                          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px" }}>
+                            {TIME_OPTIONS.map((opt) => (
+                              <label key={opt.value} style={{
+                                padding: "10px",
+                                border: pres.times.includes(opt.value) ? "2px solid #667eea" : "2px solid #e5e7eb",
+                                borderRadius: "8px",
+                                cursor: "pointer",
+                                fontWeight: pres.times.includes(opt.value) ? 600 : 500,
+                                background: pres.times.includes(opt.value) ? "#f0f4ff" : "#ffffff",
+                                textAlign: "center",
+                                transition: "all 150ms ease",
+                              }}>
+                                <input
+                                  type="checkbox"
+                                  style={{ marginRight: "6px" }}
+                                  checked={pres.times.includes(opt.value)}
+                                  onChange={() => handleTimeChange(idx, opt.value)}
+                                />
+                                {opt.label}
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Row 4: Meal Timing & Instructions */}
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                          <div>
+                            <label className="form-label small">Meal Timing</label>
+                            <select
+                              className="form-control"
+                              value={pres.meal}
+                              onChange={(e) =>
+                                handlePrescriptionChange(idx, "meal", e.target.value)
+                              }
+                            >
+                              {MEAL_OPTIONS.map((opt) => (
+                                <option key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="form-label small">Special Instructions</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              placeholder="e.g., Take with food, avoid dairy"
+                              value={pres.instructions}
+                              onChange={(e) =>
+                                handlePrescriptionChange(idx, "instructions", e.target.value)
+                              }
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {errors.prescriptions && (
+                    <div className="invalid-feedback d-block mb-3">
+                      {errors.prescriptions}
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    className="btn btn-sm"
+                    style={{
+                      border: "2px solid #667eea",
+                      color: "#667eea",
+                      background: "#f0f4ff",
+                      fontWeight: 600,
+                      padding: "10px 16px",
+                    }}
+                    onClick={handleAddPrescription}
+                  >
+                    <i className="bi bi-plus-circle me-2"></i>Add Medicine
+                  </button>
+                </div>
+
+                {/* ========== SECTION 6: RECOMMENDATIONS & VALIDITY ========== */}
+                <div className="form-section">
+                  <div className="section-title">
+                    <i className="bi bi-book-half"></i> Step 5: Additional Information
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">
+                      Treatment Suggestions & Recommendations
+                    </label>
+                    <textarea
+                      className="form-control"
+                      rows="3"
+                      placeholder="E.g., Vaccination schedule, post-op care, diet recommendations, follow-up appointment, lifestyle changes..."
+                      value={treatmentSuggestions}
+                      onChange={(e) => setTreatmentSuggestions(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">
+                      <i className="bi bi-calendar-event me-2" style={{ color: "#764ba2" }}></i>
+                      Prescription Valid Till
+                    </label>
+                    <input
+                      className="form-control"
+                      type="date"
+                      value={validateTill}
+                      onChange={(e) => setValidateTill(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* ========== SUBMIT BUTTON ========== */}
+                <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end", marginTop: "30px" }}>
+                  <button
+                    type="submit"
+                    className="btn"
+                    disabled={loading}
+                    style={{
+                      background: loading
+                        ? "#ccc"
+                        : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                      color: "white",
+                      border: "none",
+                      fontWeight: 600,
+                      padding: "12px 32px",
+                      borderRadius: "10px",
+                      cursor: loading ? "not-allowed" : "pointer",
+                      minWidth: "200px",
+                      transition: "all 250ms ease",
+                    }}
+                  >
+                    {loading ? (
+                      <>
+                        <span
+                          className="spinner-border spinner-border-sm me-2"
+                          style={{ width: "16px", height: "16px" }}
+                        ></span>
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <i className="bi bi-check-circle me-2"></i>
+                        Save Medical History
+                      </>
+                    )}
+                  </button>
+                </div>
+              </>
             )}
-          </div>
-          <div className="col-2"></div>
+          </form>
         </div>
-        {/* Validate till */}
-        <div className="form-group row mb-3">
-          <div className="col-2"></div>
-          <div className="col-8">
-            <div className="d-flex align-items-start">
-              <label
-                className="me-2 mb-0"
-                style={{ minWidth: 130, marginTop: "0.375rem" }}
-              >
-                Validate Till
-              </label>
-              <input
-                className="form-control"
-                type="date"
-                value={validateTill}
-                onChange={(e) => setValidateTill(e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="col-2"></div>
-        </div>
-
-        {/* Treatment Suggestions */}
-        <div className="form-group row mb-3">
-          <div className="col-2"></div>
-          <div className="col-8">
-            <div className="d-flex align-items-start">
-              <label
-                className="me-2 mb-0"
-                style={{ minWidth: 110, marginTop: "0.375rem" }}
-              >
-                Treatment Suggestions
-              </label>
-              <textarea
-                className="form-control"
-                rows="2"
-                placeholder="E.g., vaccination, surgery, follow-up, diet, etc."
-                value={treatmentSuggestions}
-                onChange={(e) => setTreatmentSuggestions(e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="col-2"></div>
-        </div>
-
-        <div className="form-group row mt-3">
-          <div className="col-8"></div>
-          <div className="col-2">
-            <button
-              type="submit"
-              className="btn btn-primary w-100 button-color"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <span className="spinner-border spinner-border-sm me-2"></span>
-                  Saving...
-                </>
-              ) : (
-                "Save Medical History"
-              )}
-            </button>
-          </div>
-          <div className="col-2"></div>
-        </div>
-      </form>
+      </div>
     </div>
   );
 };

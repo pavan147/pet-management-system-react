@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./Header.css";
-import { logout, isUserLoggedIn } from "../../services/VeterinaryRegistrationService";
+import { logout, isUserLoggedIn, isReceptionistUser } from "../../services/VeterinaryRegistrationService";
 
 const Header = () => {
   const isAuth = isUserLoggedIn();
@@ -16,7 +16,7 @@ const Header = () => {
     <div>
       <nav className="navbar navbar-expand-lg navbar-dark fixed-top modern-header">
         <div className="container-fluid px-4">
-          <Link className="navbar-brand fw-bold fs-5" to="/dashboard">
+          <Link className="navbar-brand fw-bold fs-5" to="/">
             🐾 PetCare Pro
           </Link>
 
@@ -37,7 +37,7 @@ const Header = () => {
               {isAuth && (
                 <>
                   <li className="nav-item">
-                    <Link className="nav-link" to="/dashboard">
+                    <Link className="nav-link" to="/">
                       📊 Dashboard
                     </Link>
                   </li>

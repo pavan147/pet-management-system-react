@@ -26,7 +26,7 @@ const LoginComponent = () => {
 
             storeToken(token);
             saveLoggedInUser(username, role);
-            navigator("/dashboard");
+            navigator("/");
             window.location.reload(false);
         } catch (error) {
             // Check for error response and set message

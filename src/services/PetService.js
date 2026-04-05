@@ -85,7 +85,7 @@ export const savePetMedicalRecord = async (formData) => {
 };
 
 
-export const saveteAppointment = async (formData) => {
+export const saveAppointment = async (formData) => {
 
   const response = await axios.post(
   BASE_URL + "/book-appointment",  formData,
