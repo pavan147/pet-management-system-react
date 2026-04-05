@@ -59,7 +59,7 @@ function App() {
         
         </div>
          </div>
-      && <Footer/>
+       <Footer/>
     </>
   );
 }

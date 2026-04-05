@@ -69,24 +69,30 @@ const fallbackImage = "https://via.placeholder.com/100?text=Pet";
 // Pet List Component
 const PetList = ({ pets, onSelect, selectedPetId }) => (
   <div>
-    <h5 className="mb-3">Pets</h5>
-    <ul className="list-group">
+    <h5 className="mb-3 fw-bold text-primary">Your Pets</h5>
+    <ul className="list-group shadow-sm">
       {pets.map((pet) => (
         <li
           key={pet.id}
-          className={`list-group-item d-flex align-items-center ${selectedPetId === pet.id ? "active" : ""}`}
-          style={{ cursor: "pointer" }}
+          className={`list-group-item d-flex align-items-center border-0 mb-2 rounded ${selectedPetId === pet.id ? "bg-primary text-white shadow" : "bg-light"}`}
+          style={{ cursor: "pointer", transition: "0.2s" }}
           onClick={() => onSelect(pet)}
         >
           <img
             src={pet.photo}
             alt={pet.name}
-            className="rounded-circle me-2 img-fluid"
-            width={40}
-            height={40}
+            className="rounded-circle me-3 border border-2"
+            width={50}
+            height={50}
             onError={(e) => { e.target.onerror = null; e.target.src = fallbackImage; }}
+            style={{ objectFit: "cover", boxShadow: selectedPetId === pet.id ? "0 0 0 2px #0d6efd" : "" }}
           />
-          <span>{pet.name} <small className="text-muted">({pet.species})</small></span>
+          <div>
+            
+<span className="fw-bold">{pet.name}</span>
+            <br />
+            <small className="text-muted">{pet.species}</small>
+          </div>
         </li>
       ))}
     </ul>
@@ -97,19 +103,20 @@ const PetList = ({ pets, onSelect, selectedPetId }) => (
 const PetDetails = ({ pet }) => {
   const [tab, setTab] = useState("info");
   return (
-    <div>
-      <div className="d-flex align-items-center mb-3">
+    <div className="card shadow p-4">
+      <div className="d-flex align-items-center mb-4">
         <img
           src={pet.photo}
           alt={pet.name}
-          className="rounded-circle me-3 img-fluid"
-          width={80}
-          height={80}
+          className="rounded-circle me-4 border border-3 border-primary"
+          width={90}
+          height={90}
           onError={(e) => { e.target.onerror = null; e.target.src = fallbackImage; }}
+          style={{ objectFit: "cover" }}
         />
         <div>
-          <h4>{pet.name} <small className="text-muted">({pet.species})</small></h4>
-          <div className="mb-2"><strong>Breed:</strong> {pet.breed}</div>
+          <h3 className="fw-bold mb-1">{pet.name} <span className="fs-5 text-secondary">({pet.species})</span></h3>
+          <div className="mb-1"><strong>Breed:</strong> {pet.breed}</div>
           <div><strong>Age:</strong> {pet.age} years</div>
         </div>
       </div>
@@ -136,12 +143,15 @@ const PetDetails = ({ pet }) => {
         )}
         {tab === "vaccinations" && (
           <div>
-            <h6>Vaccinations</h6>
+            <h6 className="fw-bold">Vaccinations</h6>
             <div style={{ maxHeight: "200px", overflowY: "auto" }}>
               <ul className="list-group">
                 {pet.vaccinations.map((v, idx) => (
-                  <li key={idx} className="list-group-item">
-                    <strong>{v.name}</strong>: {v.date} <span className="badge bg-info ms-2">Next Due: {v.nextDue}</span>
+                  <li key={idx} className="list-group-item d-flex justify-content-between align-items-center">
+                    <span>
+                      <strong>{v.name}</strong>: {v.date}
+                    </span>
+                    <span className="badge bg-info text-dark">Next Due: {v.nextDue}</span>
                   </li>
                 ))}
               </ul>
@@ -150,12 +160,13 @@ const PetDetails = ({ pet }) => {
         )}
         {tab === "deworming" && (
           <div>
-            <h6>Deworming</h6>
+            <h6 className="fw-bold">Deworming</h6>
             <div style={{ maxHeight: "150px", overflowY: "auto" }}>
               <ul className="list-group">
                 {pet.deworming.map((d, idx) => (
-                  <li key={idx} className="list-group-item">
-                    {d.date} <span className="badge bg-info ms-2">Next Due: {d.nextDue}</span>
+                  <li key={idx} className="list-group-item d-flex justify-content-between align-items-center">
+                    <span>{d.date}</span>
+                    <span className="badge bg-info text-dark">Next Due: {d.nextDue}</span>
                   </li>
                 ))}
               </ul>
@@ -164,12 +175,12 @@ const PetDetails = ({ pet }) => {
         )}
         {tab === "doctorVisits" && (
           <div>
-            <h6>Doctor Visits</h6>
+            <h6 className="fw-bold">Doctor Visits</h6>
             <div style={{ maxHeight: "150px", overflowY: "auto" }}>
               <ul className="list-group">
                 {pet.doctorVisits.map((visit, idx) => (
                   <li key={idx} className="list-group-item">
-                    {visit.date}: {visit.reason}
+                    <span className="fw-bold">{visit.date}:</span> {visit.reason}
                   </li>
                 ))}
               </ul>
@@ -206,8 +217,8 @@ const AlertsPanel = ({ pets }) => {
   });
 
   return (
-    <div>
-      <h5 className="mb-3">Alerts & Reminders</h5>
+    <div className="card shadow p-3">
+      <h5 className="mb-3 fw-bold text-danger">Alerts & Reminders</h5>
       {alerts.length === 0 ? (
         <div className="alert alert-success">No upcoming or overdue items.</div>
       ) : (
@@ -229,13 +240,20 @@ const PetDashboard = () => {
 
   return (
     <div className="container-fluid mt-4">
-      <div className="row">
+      <div className="row g-4">
         <div className="col-md-3">
-          <PetList pets={petsData} onSelect={setSelectedPet} selectedPetId={selectedPet?.id} />
+          <div className="card shadow p-3">
+            <PetList pets={petsData} onSelect={setSelectedPet} selectedPetId={selectedPet?.id} />
+          </div>
         </div>
         <div className="col-md-6">
-          {selectedPet ? <PetDetails pet={selectedPet} /> : <div className="alert alert-info">Select a pet to view details</div>}
+          {selectedPet ? (
+            <PetDetails pet={selectedPet} />
+          ) : (
+            <div className="alert alert-info">Select a pet to view details</div>
+          )}
         </div>
+
         <div className="col-md-3">
           <AlertsPanel pets={petsData} />
         </div>

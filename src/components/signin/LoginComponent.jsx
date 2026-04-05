@@ -24,7 +24,7 @@ const LoginComponent = () => {
 
                 storeToken(token);
                 saveLoggedInUser(username, role);
-                navigator("/SuccessPage");
+                navigator("//dashboard");
 
                 window.location.reload(false);
             })
