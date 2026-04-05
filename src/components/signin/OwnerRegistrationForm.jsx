@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { saveRegistration } from "../../services/VeterinaryRegistrationService";
+import { saveRegistration, getDefaultDashboardPath } from "../../services/VeterinaryRegistrationService";
 import { searchOwnerDetailsByEmailOrPhone } from "../../services/OwnerService";
 import { useFormSubmit } from "../../hooks/useFormSubmit";
 import debounce from "lodash.debounce";
@@ -139,7 +139,7 @@ const OwnerRegistrationForm = () => {
   };
 
   if (showSuccess) {
-    const redirectPath = location.state?.returnTo || "/dashboard";
+    const redirectPath = location.state?.returnTo || getDefaultDashboardPath();
     return (
       <SuccessMessage
         status="owner"
@@ -151,22 +151,17 @@ const OwnerRegistrationForm = () => {
   }
 
   return (
-    <div className="registration-container">
-      <div className="registration-gradient-bg"></div>
-      
-      <div className="container mt-5 pt-5 pb-5">
-        <div className="row">
-          <div className="col-lg-6 offset-lg-3 col-md-8 offset-md-2">
-            <div className="registration-card">
-              {/* Header */}
-              <div className="form-header">
-                <h2 className="form-title">
-                  👤 Owner Registration
-                </h2>
-                <p className="form-subtitle">Complete your profile to manage your pet's healthcare</p>
+    <div className="registration-container simple-form-shell">
+      <div className="container">
+        <div className="row justify-content-center">
+          <div className="col-lg-9 col-md-10">
+            <div className="simple-form-card">
+              <div className="form-header text-center text-md-start">
+                <h2 className="simple-form-title">Owner Registration</h2>
+                <p className="simple-form-subtitle">Complete your profile to manage your pet's healthcare.</p>
               </div>
 
-              <form onSubmit={handleSubmit} className="modern-form">
+              <form onSubmit={handleSubmit} className="appointment-simple-form">
                 {/* Personal Information Section */}
                 <div className="form-section">
                   <h5 className="section-title">
@@ -345,20 +340,22 @@ const OwnerRegistrationForm = () => {
                 </div>
 
                 {/* Submit Button */}
-                <button
-                  type="submit"
-                  className="btn btn-primary btn-lg w-100 mt-4"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <span className="spinner-border spinner-border-sm me-2"></span>
-                      Registering...
-                    </>
-                  ) : (
-                    "✓ Complete Registration"
-                  )}
-                </button>
+                <div className="d-flex justify-content-end mt-4">
+                  <button
+                    type="submit"
+                    className="btn btn-primary btn-lg appointment-submit-btn"
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2"></span>
+                        Registering...
+                      </>
+                    ) : (
+                      "Complete Registration"
+                    )}
+                  </button>
+                </div>
 
                 {/* Login Link */}
                 <div className="text-center mt-4 pt-3 border-top">

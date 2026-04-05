@@ -73,6 +73,10 @@ export const isPetOwnerUser = () => {
     return role != null && role === 'ROLE_PET_OWNER';
 }
 
+export const getDefaultDashboardPath = () => {
+    return isReceptionistUser() ? '/receptionist-dashboard' : '/dashboard';
+}
+
 export const getUserRole = () => {
     return sessionStorage.getItem("role");
 }

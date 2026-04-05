@@ -4,29 +4,22 @@
 .registration-container {
   position: relative;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: #f8f9fa;
   overflow: hidden;
 }
 
 .registration-gradient-bg {
-  position: absolute;
-  top: 0;
-  left: -100px;
-  width: 500px;
-  height: 500px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 50%;
-  opacity: 0.08;
+  display: none;
 }
 
 .registration-card {
   background: white;
-  border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-  padding: 50px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  padding: 32px;
   position: relative;
   z-index: 2;
-  animation: slideUp 500ms ease-out;
+  border: 1px solid #e5e7eb;
 }
 
 @keyframes slideUp {
@@ -42,26 +35,22 @@
 
 /* Form Header */
 .form-header {
-  text-align: center;
-  margin-bottom: 40px;
-  padding-bottom: 30px;
-  border-bottom: 2px solid #e5e7eb;
+  text-align: left;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .form-title {
-  font-size: 32px;
-  font-weight: 700;
+  font-size: 28px;
+  font-weight: 600;
   color: #1f2937;
-  margin-bottom: 10px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  margin-bottom: 6px;
 }
 
 .form-subtitle {
   color: #6b7280;
-  font-size: 15px;
+  font-size: 14px;
   margin: 0;
 }
 
@@ -69,34 +58,33 @@
 .modern-form {
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 20px;
 }
 
 /* Form Sections */
 .form-section {
-  padding: 25px;
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  padding: 20px;
+  background: #ffffff;
   border-radius: 12px;
-  border: 2px solid #e5e7eb;
+  border: 1px solid #e5e7eb;
   transition: all 250ms ease-in-out;
 }
 
 .form-section:hover {
-  border-color: #667eea;
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.1);
+  border-color: #d1d5db;
+  box-shadow: none;
 }
 
 .section-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: #1f2937;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding-bottom: 15px;
-  border-bottom: 2px solid transparent;
-  border-image: linear-gradient(90deg, #667eea 0%, #764ba2 100%) 1;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .section-title i {
@@ -254,6 +242,62 @@ textarea::placeholder {
   width: 100%;
 }
 
+/* Shared wrapper for legacy row-based forms */
+.simple-form-shell {
+  padding: 24px 12px;
+}
+
+.simple-form-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  padding: 28px;
+}
+
+.simple-form-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 6px;
+}
+
+.simple-form-subtitle {
+  color: #6b7280;
+  margin-bottom: 20px;
+}
+
+.field-label-fixed {
+  min-width: 110px;
+}
+
+.appointment-simple-wrapper {
+  width: 100%;
+  margin-top: 32px;
+  margin-bottom: 32px;
+}
+
+.appointment-simple-header {
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+}
+
+.appointment-simple-header .icon {
+  font-size: 28px;
+}
+
+.appointment-simple-header h2 {
+  margin-bottom: 4px;
+}
+
+.appointment-simple-form .form-group {
+  margin-bottom: 0;
+}
+
+.appointment-submit-btn {
+  min-width: 220px;
+}
+
 /* Pet Registration Specific */
 .pet-registration-container {
   position: relative;
@@ -384,6 +428,28 @@ textarea::placeholder {
     padding: 25px;
   }
 
+  .simple-form-shell {
+    padding: 12px 0;
+  }
+
+  .simple-form-card {
+    padding: 18px;
+  }
+
+  .simple-form-title {
+    font-size: 22px;
+  }
+
+  .appointment-simple-wrapper {
+    margin-top: 16px;
+    margin-bottom: 16px;
+    padding: 22px;
+  }
+
+  .appointment-submit-btn {
+    width: 100%;
+  }
+
   .form-title {
     font-size: 24px;
   }
@@ -479,6 +545,151 @@ textarea::placeholder {
   font-size: 16px;
   font-weight: 700;
   color: #1f2937;
+}
+
+/* Medical form refinement */
+.medical-owner-panel {
+  border: 1px solid #d1fae5;
+  background: #f8fffc;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.medical-owner-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.medical-owner-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.medical-owner-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.medical-owner-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.medical-pet-info {
+  margin-top: 12px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.medical-pet-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.medical-pet-item {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.medical-pet-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.medical-pet-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.medical-prescription-list {
+  margin-bottom: 20px;
+}
+
+.medical-medicine-card {
+  background: #ffffff;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 14px;
+}
+
+.medical-medicine-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.medical-medicine-title {
+  margin: 0;
+  color: #334155;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.medical-time-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.medical-time-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: white;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.medical-time-pill.active {
+  border-color: #667eea;
+  background: #eef2ff;
+}
+
+.medical-time-pill input[type="checkbox"] {
+  margin: 0;
+}
+
+@media (max-width: 992px) {
+  .medical-pet-grid,
+  .medical-time-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .medical-owner-grid,
+  .medical-pet-grid,
+  .medical-time-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Prescription Counter */

@@ -16,21 +16,12 @@ import ReceptionistQueue from "./components/Views/ReceptionistQueue";
 import ReceptionistDashboard from "./components/Views/ReceptionistDashboard";
 import LoginComponent from "./components/signin/LoginComponent";
 import SuccessPage from "./components/Views/SuccessPage";
-import { isUserLoggedIn, isReceptionistUser, isDoctorUser, isAdminUser, isPetOwnerUser } from "./services/VeterinaryRegistrationService";
+import { isUserLoggedIn, getDefaultDashboardPath } from "./services/VeterinaryRegistrationService";
 import PetDashboard from "./components/Views/dashboard";
 
 // Role-based home page routing
 function RoleBasedHome() {
-  if (isReceptionistUser()) {
-    return <Navigate to="/receptionist-dashboard" />;
-  } else if (isDoctorUser()) {
-    return <Navigate to="/dashboard" />;
-  } else if (isAdminUser()) {
-    return <Navigate to="/dashboard" />;
-  } else if (isPetOwnerUser()) {
-    return <Navigate to="/dashboard" />;
-  }
-  return <Navigate to="/login" />;
+  return <Navigate to={getDefaultDashboardPath()} />;
 }
 
 function App() {

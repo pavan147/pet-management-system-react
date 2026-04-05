@@ -43,8 +43,6 @@ const LoginComponent = () => {
 
     return (
         <div className='login-container'>
-            <div className='login-gradient-bg'></div>
-            
             <div className='container mt-5 pt-5 pb-5'>
                 <div className='row align-items-center min-vh-100'>
                     <div className='col-md-6 offset-md-3 col-lg-4 offset-lg-4'>
@@ -113,7 +111,7 @@ const LoginComponent = () => {
                                                 Signing in...
                                             </>
                                         ) : (
-                                            '🔐 Sign In'
+                                            'Sign In'
                                         )}
                                     </button>
                                 </div>
@@ -134,22 +132,6 @@ const LoginComponent = () => {
                                         Not registered yet? <Link to="/book-appointment" className="register-link">Book an appointment</Link>
                                     </p>
                                 </div>
-                            </div>
-                        </div>
-
-                        {/* Benefits Section */}
-                        <div className='benefits-section mt-5'>
-                            <div className='benefit-item'>
-                                <span className='benefit-icon'>📊</span>
-                                <p className='benefit-text'>Complete Dashboard</p>
-                            </div>
-                            <div className='benefit-item'>
-                                <span className='benefit-icon'>📅</span>
-                                <p className='benefit-text'>Manage Appointments</p>
-                            </div>
-                            <div className='benefit-item'>
-                                <span className='benefit-icon'>💉</span>
-                                <p className='benefit-text'>Track Vaccinations</p>
                             </div>
                         </div>
                     </div>

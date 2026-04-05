@@ -1,4 +1,5 @@
 import React from 'react';
+import { getDefaultDashboardPath } from '../../services/VeterinaryRegistrationService';
 
 const SuccessPage = () => {
   return (
@@ -34,7 +35,7 @@ const SuccessPage = () => {
             cursor: 'pointer',
             boxShadow: '0 4px 14px 0 rgba(31, 38, 135, 0.2)'
           }}
-          onClick={() => window.location.href = '/dashboard'}
+          onClick={() => window.location.href = getDefaultDashboardPath()}
         >
           Go to Dashboard
         </button>

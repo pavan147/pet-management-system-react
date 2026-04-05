@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { savePetMedicalRecord } from "../../services/PetService";
 import { searchOwnerDetailsByEmailOrPhone } from "../../services/OwnerService";
+import { getDefaultDashboardPath } from "../../services/VeterinaryRegistrationService";
 import { useFormSubmit } from "../../hooks/useFormSubmit";
 import SuccessMessage from "../SuccessMessage";
+import "./forms.css";
 
 // const MOCK_OWNERS = [
 //   {
@@ -60,7 +62,6 @@ const MEAL_OPTIONS = [
 ];
 
 const PetMedicalHistoryForm = () => {
-  const [searchType, setSearchType] = useState("email");
   const [searchValue, setSearchValue] = useState("");
   const [owner, setOwner] = useState(null);
   const [petList, setPetList] = useState([]);
@@ -96,7 +97,7 @@ const PetMedicalHistoryForm = () => {
     },
   ];
 
-  const { handleSubmit: submitForm, loading, showSuccess, setShowSuccess } = useFormSubmit(
+  const { handleSubmit: submitForm, loading, showSuccess } = useFormSubmit(
     (formData) => savePetMedicalRecord(formData),
     {
       resetForm: () => {
@@ -126,12 +127,11 @@ const PetMedicalHistoryForm = () => {
       setErrors({ searchValue: "Please enter owner's email or phone." });
       return;
     }
-    let foundOwner;
-        foundOwner = await searchOwnerDetailsByEmailOrPhone(searchValue);   
-      
-      if (foundOwner && foundOwner.pets) {
-        setOwner(foundOwner);
-        setPetList(foundOwner.pets);
+    const foundOwner = await searchOwnerDetailsByEmailOrPhone(searchValue);
+
+    if (foundOwner && foundOwner.pets) {
+      setOwner(foundOwner);
+      setPetList(foundOwner.pets);
     } else {
       setErrors({ searchValue: "Owner not found." });
     }
@@ -200,149 +200,103 @@ const PetMedicalHistoryForm = () => {
     return (
       <SuccessMessage
         status="medical"
-        redirectTo="/dashboard"
+        redirectTo={getDefaultDashboardPath()}
         delay={3000}
       />
     );
   }
 
   return (
-    <div className="registration-container">
-      <div className="registration-gradient-bg"></div>
-      <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "40px 20px" }}>
-        <div className="registration-card">
+    <div className="registration-container simple-form-shell">
+      <div className="container">
+        <div className="row justify-content-center">
+          <div className="col-lg-10 col-md-11">
+            <div className="simple-form-card">
           {/* Form Header */}
-          <div className="form-header">
-            <h1 className="form-title">
-              <i className="bi bi-stethoscope me-2"></i>
-              Pet Medical History & Prescription
-            </h1>
-            <p className="form-subtitle">
-              Complete medical records and prescription for pet care
+          <div className="form-header text-center text-md-start">
+            <h1 className="simple-form-title">Pet Medical History & Prescription</h1>
+            <p className="simple-form-subtitle">
+              Keep consultation notes, prescription details, and follow-up plan in one place.
             </p>
           </div>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="appointment-simple-form">
             {/* ========== SECTION 1: OWNER SEARCH ========== */}
-            {!owner && (
-              <div className="form-section">
-                <div className="section-title">
-                  <i className="bi bi-search"></i> Step 1: Find Owner
+            <div className="form-section">
+              <div className="section-title">Find Owner</div>
+              <div className="row g-3 align-items-end">
+                <div className="col-md-8">
+                  <label className="form-label">Owner Email or Phone</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Enter email or phone number"
+                    value={searchValue}
+                    onChange={(e) => setSearchValue(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && handleOwnerSearch(e)}
+                  />
+                  {errors.searchValue && (
+                    <div className="invalid-feedback d-block mt-2">{errors.searchValue}</div>
+                  )}
                 </div>
-                <div className="mb-3">
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: "12px", alignItems: "end" }}>
-                    <div>
-                      <label className="form-label">Owner's Contact Information</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Enter email or phone number"
-                        value={searchValue}
-                        onChange={(e) => setSearchValue(e.target.value)}
-                        onKeyPress={(e) => e.key === "Enter" && handleOwnerSearch(e)}
-                      />
-                      {errors.searchValue && (
-                        <div className="invalid-feedback d-block mt-2">
-                          <i className="bi bi-exclamation-circle me-2"></i>
-                          {errors.searchValue}
-                        </div>
-                      )}
-                    </div>
-                    <button
-                      className="btn"
-                      style={{
-                        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                        color: "white",
-                        border: "none",
-                        fontWeight: 600,
-                        padding: "12px 24px",
-                      }}
-                      onClick={handleOwnerSearch}
-                      type="button"
-                    >
-                      <i className="bi bi-search me-2"></i>Search
-                    </button>
-                  </div>
+                <div className="col-md-4">
+                  <button className="btn btn-primary w-100" onClick={handleOwnerSearch} type="button">
+                    Search Owner
+                  </button>
                 </div>
               </div>
-            )}
 
-            {/* ========== SECTION 2: OWNER INFO ========== */}
-            {owner && (
-              <div className="form-section" style={{ borderColor: "#10b981", borderWidth: "2px" }}>
-                <div className="section-title">
-                  <i className="bi bi-person-check-fill" style={{ color: "#10b981" }}></i> Owner Information
+              {owner && (
+                <div className="medical-owner-panel mt-3">
+                  <div className="medical-owner-grid">
+                    <div className="medical-owner-item">
+                      <span className="medical-owner-label">Owner Name</span>
+                      <span className="medical-owner-value">{owner.ownerName}</span>
+                    </div>
+                    <div className="medical-owner-item">
+                      <span className="medical-owner-label">Phone</span>
+                      <span className="medical-owner-value">{owner.phoneNumber}</span>
+                    </div>
+                    <div className="medical-owner-item">
+                      <span className="medical-owner-label">Email</span>
+                      <span className="medical-owner-value">{owner.email}</span>
+                    </div>
+                    <div className="medical-owner-item">
+                      <span className="medical-owner-label">Address</span>
+                      <span className="medical-owner-value">{owner.address}</span>
+                    </div>
+                  </div>
+                  <button
+                    className="btn btn-outline-secondary btn-sm mt-3"
+                    type="button"
+                    onClick={() => {
+                      setOwner(null);
+                      setSearchValue("");
+                      setPetList([]);
+                      setSelectedPet("");
+                      setPetInfo(null);
+                    }}
+                  >
+                    Change Owner
+                  </button>
                 </div>
-                <div style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "20px",
-                  marginBottom: "16px"
-                }}>
-                  <div>
-                    <label className="form-label small">Owner Name</label>
-                    <div style={{ padding: "10px", background: "#f0fdf4", borderRadius: "8px", fontWeight: 500 }}>
-                      {owner.ownerName}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="form-label small">Phone Number</label>
-                    <div style={{ padding: "10px", background: "#f0fdf4", borderRadius: "8px", fontWeight: 500 }}>
-                      {owner.phoneNumber}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="form-label small">Email</label>
-                    <div style={{ padding: "10px", background: "#f0fdf4", borderRadius: "8px", fontWeight: 500 }}>
-                      {owner.email}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="form-label small">Address</label>
-                    <div style={{ padding: "10px", background: "#f0fdf4", borderRadius: "8px", fontWeight: 500 }}>
-                      {owner.address}
-                    </div>
-                  </div>
-                </div>
-                <button
-                  className="btn btn-sm"
-                  style={{
-                    border: "1px solid #667eea",
-                    color: "#667eea",
-                    background: "transparent",
-                    fontWeight: 600,
-                  }}
-                  type="button"
-                  onClick={() => {
-                    setOwner(null);
-                    setSearchValue("");
-                    setPetList([]);
-                    setSelectedPet("");
-                    setPetInfo(null);
-                  }}
-                >
-                  <i className="bi bi-arrow-left me-2"></i>Change Owner
-                </button>
-              </div>
-            )}
+              )}
+            </div>
 
-            {/* ========== SECTION 3: PET SELECTION ========== */}
             {petList.length > 0 && (
               <div className="form-section">
-                <div className="section-title">
-                  <i className="bi bi-paw-fill"></i> Step 2: Select Pet
-                </div>
+                <div className="section-title">Select Pet</div>
                 <div className="mb-3">
-                  <label className="form-label">Select a Pet</label>
+                  <label className="form-label">Pet</label>
                   <select
                     className={`form-control ${errors.selectedPet ? "is-invalid" : ""}`}
                     value={selectedPet}
                     onChange={(e) => handleSelectPet(e.target.value)}
                   >
-                    <option value="">-- Choose Pet --</option>
+                    <option value="">Choose pet</option>
                     {petList.map((pet) => (
                       <option key={pet.id} value={pet.id}>
-                        🐾 {pet.petName} ({pet.species} - {pet.breed})
+                        {pet.petName} ({pet.species} - {pet.breed})
                       </option>
                     ))}
                   </select>
@@ -355,37 +309,23 @@ const PetMedicalHistoryForm = () => {
 
                 {/* Pet Information Card */}
                 {petInfo && (
-                  <div style={{
-                    padding: "16px",
-                    background: "linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%)",
-                    borderRadius: "12px",
-                    border: "1px solid #667eea",
-                    marginTop: "12px"
-                  }}>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "16px" }}>
-                      <div>
-                        <div style={{ fontSize: "12px", color: "#667eea", fontWeight: 600, marginBottom: "4px" }}>PET NAME</div>
-                        <div style={{ fontSize: "16px", fontWeight: 700, color: "#1f2937" }}>
-                          {petInfo.petName}
-                        </div>
+                  <div className="medical-pet-info">
+                    <div className="medical-pet-grid">
+                      <div className="medical-pet-item">
+                        <div className="medical-pet-label">Pet Name</div>
+                        <div className="medical-pet-value">{petInfo.petName}</div>
                       </div>
-                      <div>
-                        <div style={{ fontSize: "12px", color: "#667eea", fontWeight: 600, marginBottom: "4px" }}>SPECIES</div>
-                        <div style={{ fontSize: "16px", fontWeight: 700, color: "#1f2937" }}>
-                          {petInfo.species}
-                        </div>
+                      <div className="medical-pet-item">
+                        <div className="medical-pet-label">Species</div>
+                        <div className="medical-pet-value">{petInfo.species}</div>
                       </div>
-                      <div>
-                        <div style={{ fontSize: "12px", color: "#667eea", fontWeight: 600, marginBottom: "4px" }}>BREED</div>
-                        <div style={{ fontSize: "16px", fontWeight: 700, color: "#1f2937" }}>
-                          {petInfo.breed}
-                        </div>
+                      <div className="medical-pet-item">
+                        <div className="medical-pet-label">Breed</div>
+                        <div className="medical-pet-value">{petInfo.breed}</div>
                       </div>
-                      <div>
-                        <div style={{ fontSize: "12px", color: "#667eea", fontWeight: 600, marginBottom: "4px" }}>AGE</div>
-                        <div style={{ fontSize: "16px", fontWeight: 700, color: "#1f2937" }}>
-                          {petInfo.age} years
-                        </div>
+                      <div className="medical-pet-item">
+                        <div className="medical-pet-label">Age</div>
+                        <div className="medical-pet-value">{petInfo.age} years</div>
                       </div>
                     </div>
                   </div>
@@ -393,20 +333,14 @@ const PetMedicalHistoryForm = () => {
               </div>
             )}
 
-            {/* ========== SECTION 4: MEDICAL INFORMATION ========== */}
             {owner && selectedPet && (
               <>
                 <div className="form-section">
-                  <div className="section-title">
-                    <i className="bi bi-clipboard-pulse"></i> Step 3: Medical History
-                  </div>
+                  <div className="section-title">Medical Assessment</div>
 
                   {/* Allergies */}
                   <div className="form-group">
-                    <label className="form-label">
-                      <i className="bi bi-exclamation-triangle me-2" style={{ color: "#f59e0b" }}></i>
-                      Allergies
-                    </label>
+                    <label className="form-label">Allergies</label>
                     <textarea
                       className="form-control"
                       rows="2"
@@ -418,10 +352,7 @@ const PetMedicalHistoryForm = () => {
 
                   {/* Diagnosis */}
                   <div className="form-group">
-                    <label className="form-label">
-                      <i className="bi bi-stethoscope me-2" style={{ color: "#0dcaf0" }}></i>
-                      Diagnosis <span className="required">*</span>
-                    </label>
+                    <label className="form-label">Diagnosis <span className="required">*</span></label>
                     <textarea
                       className={`form-control ${errors.diagnosis ? "is-invalid" : ""}`}
                       rows="3"
@@ -437,58 +368,27 @@ const PetMedicalHistoryForm = () => {
                   </div>
                 </div>
 
-                {/* ========== SECTION 5: PRESCRIPTIONS ========== */}
                 <div className="form-section">
-                  <div className="section-title">
-                    <i className="bi bi-capsule me-2"></i>
-                    Step 4: Prescriptions ({prescriptions.length})
-                  </div>
+                  <div className="section-title">Prescriptions ({prescriptions.length})</div>
 
-                  <div style={{ marginBottom: "20px" }}>
+                  <div className="medical-prescription-list">
                     {prescriptions.map((pres, idx) => (
-                      <div
-                        key={idx}
-                        style={{
-                          background: "#ffffff",
-                          borderRadius: "12px",
-                          border: "2px solid #e5e7eb",
-                          padding: "20px",
-                          marginBottom: "16px",
-                          transition: "all 250ms ease",
-                        }}
-                        className="medicine-card"
-                      >
-                        <div style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          marginBottom: "16px",
-                          paddingBottom: "12px",
-                          borderBottom: "1px solid #e5e7eb",
-                        }}>
-                          <h6 style={{ margin: 0, color: "#667eea", fontWeight: 700 }}>
-                            <i className="bi bi-capsule"></i> Medicine #{idx + 1}
-                          </h6>
+                      <div key={idx} className="medicine-card medical-medicine-card">
+                        <div className="medical-medicine-header">
+                          <h6 className="medical-medicine-title">Medicine #{idx + 1}</h6>
                           {prescriptions.length > 1 && (
                             <button
                               type="button"
-                              className="btn btn-sm"
-                              style={{
-                                background: "#fee2e2",
-                                color: "#ef4444",
-                                border: "none",
-                                fontWeight: 600,
-                              }}
+                              className="btn btn-sm btn-outline-danger"
                               onClick={() => handleRemovePrescription(idx)}
                             >
-                              <i className="bi bi-trash3 me-1"></i>Remove
+                              Remove
                             </button>
                           )}
                         </div>
 
-                        {/* Row 1: Medicine & Dosage */}
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
-                          <div>
+                        <div className="row g-3 mb-3">
+                          <div className="col-md-6">
                             <label className="form-label small">Medicine Name <span className="required">*</span></label>
                             <input
                               type="text"
@@ -500,7 +400,7 @@ const PetMedicalHistoryForm = () => {
                               }
                             />
                           </div>
-                          <div>
+                          <div className="col-md-6">
                             <label className="form-label small">Dosage <span className="required">*</span></label>
                             <input
                               type="text"
@@ -514,9 +414,8 @@ const PetMedicalHistoryForm = () => {
                           </div>
                         </div>
 
-                        {/* Row 2: Frequency & Duration */}
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
-                          <div>
+                        <div className="row g-3 mb-3">
+                          <div className="col-md-6">
                             <label className="form-label small">Frequency (per day) <span className="required">*</span></label>
                             <input
                               type="number"
@@ -529,7 +428,7 @@ const PetMedicalHistoryForm = () => {
                               min={1}
                             />
                           </div>
-                          <div>
+                          <div className="col-md-6">
                             <label className="form-label small">Duration (days) <span className="required">*</span></label>
                             <input
                               type="number"
@@ -544,24 +443,16 @@ const PetMedicalHistoryForm = () => {
                           </div>
                         </div>
 
-                        {/* Row 3: Time of Day */}
-                        <div style={{ marginBottom: "16px" }}>
+                        <div className="mb-3">
                           <label className="form-label small">Time of Day <span className="required">*</span></label>
-                          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px" }}>
+                          <div className="medical-time-grid">
                             {TIME_OPTIONS.map((opt) => (
-                              <label key={opt.value} style={{
-                                padding: "10px",
-                                border: pres.times.includes(opt.value) ? "2px solid #667eea" : "2px solid #e5e7eb",
-                                borderRadius: "8px",
-                                cursor: "pointer",
-                                fontWeight: pres.times.includes(opt.value) ? 600 : 500,
-                                background: pres.times.includes(opt.value) ? "#f0f4ff" : "#ffffff",
-                                textAlign: "center",
-                                transition: "all 150ms ease",
-                              }}>
+                              <label
+                                key={opt.value}
+                                className={`medical-time-pill ${pres.times.includes(opt.value) ? "active" : ""}`}
+                              >
                                 <input
                                   type="checkbox"
-                                  style={{ marginRight: "6px" }}
                                   checked={pres.times.includes(opt.value)}
                                   onChange={() => handleTimeChange(idx, opt.value)}
                                 />
@@ -571,9 +462,8 @@ const PetMedicalHistoryForm = () => {
                           </div>
                         </div>
 
-                        {/* Row 4: Meal Timing & Instructions */}
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                          <div>
+                        <div className="row g-3">
+                          <div className="col-md-6">
                             <label className="form-label small">Meal Timing</label>
                             <select
                               className="form-control"
@@ -589,7 +479,7 @@ const PetMedicalHistoryForm = () => {
                               ))}
                             </select>
                           </div>
-                          <div>
+                          <div className="col-md-6">
                             <label className="form-label small">Special Instructions</label>
                             <input
                               type="text"
@@ -614,30 +504,18 @@ const PetMedicalHistoryForm = () => {
 
                   <button
                     type="button"
-                    className="btn btn-sm"
-                    style={{
-                      border: "2px solid #667eea",
-                      color: "#667eea",
-                      background: "#f0f4ff",
-                      fontWeight: 600,
-                      padding: "10px 16px",
-                    }}
+                    className="btn btn-outline-primary"
                     onClick={handleAddPrescription}
                   >
-                    <i className="bi bi-plus-circle me-2"></i>Add Medicine
+                    Add Medicine
                   </button>
                 </div>
 
-                {/* ========== SECTION 6: RECOMMENDATIONS & VALIDITY ========== */}
                 <div className="form-section">
-                  <div className="section-title">
-                    <i className="bi bi-book-half"></i> Step 5: Additional Information
-                  </div>
+                  <div className="section-title">Additional Notes</div>
 
                   <div className="form-group">
-                    <label className="form-label">
-                      Treatment Suggestions & Recommendations
-                    </label>
+                    <label className="form-label">Treatment Suggestions & Recommendations</label>
                     <textarea
                       className="form-control"
                       rows="3"
@@ -648,10 +526,7 @@ const PetMedicalHistoryForm = () => {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">
-                      <i className="bi bi-calendar-event me-2" style={{ color: "#764ba2" }}></i>
-                      Prescription Valid Till
-                    </label>
+                    <label className="form-label">Prescription Valid Till</label>
                     <input
                       className="form-control"
                       type="date"
@@ -661,45 +536,27 @@ const PetMedicalHistoryForm = () => {
                   </div>
                 </div>
 
-                {/* ========== SUBMIT BUTTON ========== */}
-                <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end", marginTop: "30px" }}>
+                <div className="d-flex justify-content-end mt-4">
                   <button
                     type="submit"
-                    className="btn"
+                    className="btn btn-primary btn-lg appointment-submit-btn"
                     disabled={loading}
-                    style={{
-                      background: loading
-                        ? "#ccc"
-                        : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                      color: "white",
-                      border: "none",
-                      fontWeight: 600,
-                      padding: "12px 32px",
-                      borderRadius: "10px",
-                      cursor: loading ? "not-allowed" : "pointer",
-                      minWidth: "200px",
-                      transition: "all 250ms ease",
-                    }}
                   >
                     {loading ? (
                       <>
-                        <span
-                          className="spinner-border spinner-border-sm me-2"
-                          style={{ width: "16px", height: "16px" }}
-                        ></span>
+                        <span className="spinner-border spinner-border-sm me-2"></span>
                         Saving...
                       </>
                     ) : (
-                      <>
-                        <i className="bi bi-check-circle me-2"></i>
-                        Save Medical History
-                      </>
+                      "Save Medical History"
                     )}
                   </button>
                 </div>
               </>
             )}
           </form>
+            </div>
+          </div>
         </div>
       </div>
     </div>

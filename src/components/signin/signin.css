@@ -2,30 +2,22 @@
 .login-container {
   position: relative;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: #f8f9fa;
   overflow: hidden;
 }
 
 .login-gradient-bg {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 600px;
-  height: 600px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 50%;
-  opacity: 0.1;
-  transform: translate(200px, -200px);
+  display: none;
 }
 
 .login-card {
   background: white;
-  border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  padding: 32px;
   position: relative;
   z-index: 2;
-  animation: slideUp 500ms ease-out;
+  border: 1px solid #e5e7eb;
 }
 
 @keyframes slideUp {
@@ -45,11 +37,10 @@
 }
 
 .login-icon {
-  font-size: 60px;
+  font-size: 42px;
   line-height: 1;
   display: block;
-  margin-bottom: 15px;
-  animation: bounce 1s ease-in-out infinite;
+  margin-bottom: 10px;
 }
 
 @keyframes bounce {
@@ -62,14 +53,10 @@
 }
 
 .login-title {
-  font-size: 32px;
-  font-weight: 700;
+  font-size: 26px;
+  font-weight: 600;
   color: #1f2937;
-  margin-bottom: 8px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  margin-bottom: 6px;
 }
 
 .login-subtitle {
@@ -103,7 +90,7 @@
 }
 
 .form-label i {
-  color: #667eea;
+  color: #4b5563;
 }
 
 /* Alert Styles */
@@ -137,8 +124,8 @@
 }
 
 .footer-link:hover {
-  color: #764ba2;
-  transform: translateX(3px);
+  color: #4f46e5;
+  transform: none;
 }
 
 .register-link {
@@ -149,16 +136,13 @@
 }
 
 .register-link:hover {
-  color: #764ba2;
+  color: #4f46e5;
   text-decoration: underline;
 }
 
 /* Benefits Section */
 .benefits-section {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 15px;
-  text-align: center;
+  display: none;
 }
 
 .benefit-item {
@@ -200,16 +184,15 @@
 /* Responsive */
 @media (max-width: 768px) {
   .login-card {
-    padding: 30px;
+    padding: 24px;
   }
 
   .login-title {
-    font-size: 24px;
+    font-size: 22px;
   }
 
   .login-gradient-bg {
-    width: 400px;
-    height: 400px;
+    display: none;
   }
 
   .footer-link {
