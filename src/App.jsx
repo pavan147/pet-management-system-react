@@ -16,6 +16,7 @@ import ReceptionistQueue from "./components/Views/ReceptionistQueue";
 import LoginComponent from "./components/signin/LoginComponent";
 import SuccessPage from "./components/Views/SuccessPage";
 import { isUserLoggedIn } from "./services/VeterinaryRegistrationService";
+import PetDashboard from "./components/Views/dashboard";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -40,7 +41,7 @@ function App() {
       <div class="container  text-center">
        
            <Routes>
-             
+             <Route path="/dashboard" element={ <PetDashboard /> } />
               <Route path="/login" element={ <LoginComponent/> } />
               <Route path="/book-appointment" element={<DoctorAppointmentForm/>} /> 
               <Route path="/owner-registration" element={<OwnerRegistrationForm />} />

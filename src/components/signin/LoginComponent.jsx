@@ -4,28 +4,39 @@ import { useNavigate, Link } from 'react-router-dom';
 
 const LoginComponent = () => {
 
-    const [username, setUsername] = useState('')
-    const [password, setPassword] = useState('')
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
 
     const navigator = useNavigate();
 
     async function handleLoginForm(e) {
         e.preventDefault();
 
-        await loginAPICall(username, password).then((response) => {
-            console.log(response.data);
+        setErrorMessage(''); // Clear previous error
 
-            const token = 'Bearer ' + response.data.accessToken;
-            const role = response.data.role;
+        await loginAPICall(username, password)
+            .then((response) => {
+                console.log(response.data);
 
-            storeToken(token);
-            saveLoggedInUser(username, role);
-            navigator("/SuccessPage")
+                const token = 'Bearer ' + response.data.accessToken;
+                const role = response.data.role;
 
-            window.location.reload(false);
-        }).catch(error => {
-            console.error(error);
-        })
+                storeToken(token);
+                saveLoggedInUser(username, role);
+                navigator("/SuccessPage");
+
+                window.location.reload(false);
+            })
+            .catch(error => {
+                // Check for error response and set message
+                if (error.response && error.response.data && error.response.data.message) {
+                    setErrorMessage(error.response.data.message);
+                } else {
+                    setErrorMessage("Username or password incorrect");
+                }
+                console.error(error);
+            });
     }
 
     return (
@@ -43,6 +54,13 @@ const LoginComponent = () => {
                             <div className="alert alert-info" role="alert">
                                 <strong>Note:</strong> Only the receptionist can register users and pets. If you are not yet registered, please visit the receptionist to complete your registration. You will be able to log in and view the dashboard only after you and your pet have been registered.
                             </div>
+
+                            {/* Error Message */}
+                            {errorMessage && (
+                                <div className="alert alert-danger" role="alert">
+                                    {errorMessage}
+                                </div>
+                            )}
 
                             <form>
                                 <div className='row mb-3'>
@@ -92,4 +110,4 @@ const LoginComponent = () => {
     )
 }
 
-export default LoginComponent
+export default LoginComponent;
