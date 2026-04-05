@@ -139,11 +139,13 @@ const OwnerRegistrationForm = () => {
   };
 
   if (showSuccess) {
+    const redirectPath = location.state?.returnTo || "/dashboard";
     return (
       <SuccessMessage
         status="owner"
-        redirectTo="/dashboard"
-        delay={3000}
+        message={location.state?.returnTo ? "Registration successful! Redirecting back to appointments..." : "Owner registered successfully!"}
+        redirectTo={redirectPath}
+        delay={2000}
       />
     );
   }

@@ -5,6 +5,7 @@ import {
   checkOwnerRegistered,
 } from "../../services/PetService";
 import { useNavigate } from "react-router-dom";
+import "./ReceptionistQueue.css";
 
 const PAGE_SIZE = 10;
 
@@ -18,12 +19,42 @@ const ReceptionistQueue = () => {
   const [redirectUrl, setRedirectUrl] = useState("");
   const navigator = useNavigate();
 
+  // Helper function to get today's date in YYYY-MM-DD format
+  const getTodayDate = () => new Date().toISOString().slice(0, 10);
+
+  // Helper function to check if appointment date matches today
+  const isAppointmentToday = (appointmentDate) => {
+    if (!appointmentDate) return false;
+    const appointmentDateStr = appointmentDate.toString().slice(0, 10);
+    const todayStr = getTodayDate();
+    return appointmentDateStr === todayStr;
+  };
+
+  // Helper function to check if action is allowed
+  const isActionAllowed = (appointmentDate) => {
+    return isAppointmentToday(appointmentDate);
+  };
+
+  // Helper function to check if viewing today's appointments
+  const isViewingToday = () => {
+    const todayStr = getTodayDate();
+    return date === todayStr;
+  };
+
   useEffect(() => {
     fetchAppointments(date)
       .then((res) => {
         setAppointments(res.data);
-        const idx = res.data.findIndex((a) => a.status === "waiting");
-        setCurrentIdx(idx !== -1 ? idx : -1);
+        // Only set current patient if viewing today's appointments
+        const todayStr = getTodayDate();
+        const selectedDateStr = date;
+        if (todayStr === selectedDateStr) {
+          const idx = res.data.findIndex((a) => a.status === "waiting");
+          setCurrentIdx(idx !== -1 ? idx : -1);
+        } else {
+          // For past/future dates, don't set any as current
+          setCurrentIdx(-1);
+        }
         setPage(1);
       })
       .catch(() => {
@@ -48,7 +79,9 @@ const ReceptionistQueue = () => {
     try {
       // Check owner registration
       const res = await checkOwnerRegistered(appt.email);
-      if (res.data === false) {
+      const isRegistered = res.data === true || res.data?.isRegistered === true;
+      
+      if (!isRegistered) {
         setPopupMessage(
           `Owner with email "${appt.email}" is not registered. Please register the owner before checking in.`
         );
@@ -64,9 +97,10 @@ const ReceptionistQueue = () => {
       setAppointments(updated);
       callNext(globalIdx, updated);
     } catch (err) {
-      setPopupMessage("Please registar this user before checking in.");
+      setPopupMessage("Error checking owner registration. Please try again.");
       setRedirectUrl("");
       setShowPopup(true);
+      console.error("Owner check error:", err);
     }
   };
 
@@ -124,167 +158,255 @@ const ReceptionistQueue = () => {
           email: appt.email || "",
           phone: appt.phone || "",
           address: appt.address || "",
-        }
+        },
+        returnTo: '/view-appointment',
+        returnToDate: date
       }
     });
   };
 
   return (
-    <div className="container mt-5">
-      <h2 className="mb-4 text-center">Patient Queue</h2>
-      <div className="mb-3">
-        <label>Select Date: </label>
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          className="form-control"
-          style={{ maxWidth: 200, display: "inline-block", marginLeft: 10 }}
-        />
+    <div className="receptionist-container">
+      {/* Header Section */}
+      <div className="receptionist-header">
+        <div className="header-content">
+          <div className="header-title">
+            <i className="bi bi-calendar2-check"></i>
+            <div>
+              <h1>Patient Queue Management</h1>
+              <p>Call patients for their appointments</p>
+            </div>
+          </div>
+          <div className="header-date-picker">
+            <label htmlFor="appointmentDate">Select Date:</label>
+            <input
+              id="appointmentDate"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="modern-date-input"
+            />
+          </div>
+        </div>
       </div>
-      <div className="table-responsive">
-        <table className="table table-bordered table-hover">
-          <thead className="table-light">
-            <tr>
-              <th>#</th>
-              <th>Patient Name</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {paginatedAppointments.map((appt, idx) => {
-              const globalIdx = (page - 1) * PAGE_SIZE + idx;
-              return (
-                <tr
-                  key={appt.id ? appt.id : globalIdx}
-                  className={
-                    globalIdx === currentIdx
-                      ? "table-primary"
-                      : appt.status === "checked-in"
-                      ? "table-success"
-                      : appt.status === "pending"
-                      ? "table-warning"
-                      : ""
-                  }
-                >
-                  <td>{globalIdx + 1}</td>
-                  <td>{appt.name}</td>
-                  <td>
-                    {globalIdx === currentIdx
-                      ? "Current"
-                      : appt.status === "checked-in"
-                      ? "Checked In"
-                      : appt.status === "pending"
-                      ? "Pending"
-                      : "Waiting"}
-                  </td>
-                  <td>
-                    {globalIdx === currentIdx && appt.status === "waiting" && (
-                      <>
-                        <button
-                          className="btn btn-success btn-sm me-2"
-                          onClick={() => handleCheckIn(idx)}
-                        >
-                          Check In
-                        </button>
-                        <button
-                          className="btn btn-warning btn-sm"
-                          onClick={() => handleNotPresent(idx)}
-                        >
-                          Not Present
-                        </button>
-                      </>
-                    )}
-                    {appt.status === "pending" && globalIdx !== currentIdx && (
-                      <button
-                        className="btn btn-info btn-sm"
-                        onClick={() => handleRecall(idx)}
-                      >
-                        Recall
-                      </button>
-                    )}
-                    {appt.status === "checked-in" && <span>✔️</span>}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-      {/* Pagination Controls */}
-      <nav>
-        <ul className="pagination justify-content-center">
-          {[...Array(totalPages)].map((_, i) => (
-            <li
-              key={i}
-              className={`page-item ${page === i + 1 ? "active" : ""}`}
-            >
-              <button className="page-link" onClick={() => goToPage(i + 1)}>
-                {i + 1}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </nav>
-      {currentIdx === -1 && (
-        <div className="alert alert-info text-center mt-3">
-          All patients have been processed.
+
+      {/* Stats Section */}
+      {appointments.length > 0 && (
+        <div className="queue-stats">
+          <div className="stat-card waiting">
+            <div className="stat-number">
+              {appointments.filter((a) => a.status === "waiting").length}
+            </div>
+            <div>Waiting</div>
+          </div>
+          <div className="stat-card checked-in">
+            <div className="stat-number">
+              {appointments.filter((a) => a.status === "checked-in").length}
+            </div>
+            <div>Checked In</div>
+          </div>
+          <div className="stat-card pending">
+            <div className="stat-number">
+              {appointments.filter((a) => a.status === "pending").length}
+            </div>
+            <div>Pending</div>
+          </div>
+          <div className="stat-card total">
+            <div className="stat-number">{appointments.length}</div>
+            <div>Total</div>
+          </div>
         </div>
       )}
-      {/* Modal Overlay */}
+
+      {/* No Appointments */}
+      {appointments.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-icon">📭</div>
+          <h3>No Appointments</h3>
+          <p>No appointments scheduled for {date}</p>
+        </div>
+      ) : isViewingToday() && currentIdx === -1 ? (
+        <div className="completed-state">
+          <div className="completed-icon">✅</div>
+          <h3>All Patients Processed!</h3>
+          <p>Great job! All patients have been attended to.</p>
+        </div>
+      ) : (
+        <>
+          {/* Current Patient - Highlighted (only for today) */}
+          {isViewingToday() && currentIdx !== -1 && (
+            <div className="current-patient-section">
+              <div className="current-label">📢 NOW CALLING</div>
+              <div className="current-patient-card">
+                <div className="patient-position">#{currentIdx + 1}</div>
+                <div className="patient-info">
+                  <h2>{appointments[currentIdx]?.name}</h2>
+                  <div className="patient-details">
+                    <span>📧 {appointments[currentIdx]?.email}</span>
+                    <span>📞 {appointments[currentIdx]?.phone}</span>
+                  </div>
+                </div>
+                <div className="patient-status-large">
+                  <span className="badge-large">Waiting</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* View-Only Mode Banner for non-today dates */}
+          {!isViewingToday() && (
+            <div className="view-only-banner">
+              <i className="bi bi-info-circle"></i>
+              <span>You are viewing {date < getTodayDate() ? "past" : "future"} appointments in view-only mode</span>
+            </div>
+          )}
+
+          {/* Appointments List */}
+          <div className="appointments-section">
+            <h3 className="section-title">Queue</h3>
+            <div className="appointments-grid">
+              {paginatedAppointments.map((appt, idx) => {
+                const globalIdx = (page - 1) * PAGE_SIZE + idx;
+                const isCurrent = globalIdx === currentIdx;
+                const statusColor =
+                  appt.status === "checked-in"
+                    ? "success"
+                    : appt.status === "pending"
+                    ? "warning"
+                    : appt.status === "waiting"
+                    ? "info"
+                    : "secondary";
+
+                return (
+                  <div
+                    key={appt.id ? appt.id : globalIdx}
+                    className={`appointment-card ${isCurrent ? "current" : ""} status-${statusColor}`}
+                  >
+                    {/* Position Badge */}
+                    <div className="position-badge">#{globalIdx + 1}</div>
+
+                    {/* Current Indicator */}
+                    {isCurrent && <div className="current-indicator">●</div>}
+
+                    {/* Patient Info */}
+                    <div className="appointment-info">
+                      <h5>{appt.name}</h5>
+                      <p className="email-phone">
+                        <span>{appt.email}</span> • <span>{appt.phone}</span>
+                      </p>
+                    </div>
+
+                    {/* Status Badge */}
+                    <div className={`status-badge status-${statusColor}`}>
+                      {isCurrent
+                        ? "Current"
+                        : appt.status === "checked-in"
+                        ? "✔ Checked In"
+                        : appt.status === "pending"
+                        ? "⏸ Pending"
+                        : "⏳ Waiting"}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="appointment-actions">
+                      {isViewingToday() ? (
+                        <>
+                          {isCurrent && appt.status === "waiting" && (
+                            <>
+                              <button
+                                className="btn-action btn-check-in"
+                                onClick={() => handleCheckIn(idx)}
+                                title="Check in patient"
+                              >
+                                <i className="bi bi-check-circle"></i> Check In
+                              </button>
+                              <button
+                                className="btn-action btn-not-present"
+                                onClick={() => handleNotPresent(idx)}
+                                title="Patient not present"
+                              >
+                                <i className="bi bi-x-circle"></i> Not Present
+                              </button>
+                            </>
+                          )}
+                          {appt.status === "pending" && globalIdx !== currentIdx && (
+                            <button
+                              className="btn-action btn-recall"
+                              onClick={() => handleRecall(idx)}
+                              title="Recall patient"
+                            >
+                              <i className="bi bi-arrow-repeat"></i> Recall
+                            </button>
+                          )}
+                          {appt.status === "checked-in" && (
+                            <div className="status-done">✓ Done</div>
+                          )}
+                        </>
+                      ) : (
+                        <div className="appointment-locked">
+                          <i className="bi bi-lock"></i> View Only
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="pagination-section">
+              <ul className="modern-pagination">
+                {[...Array(totalPages)].map((_, i) => (
+                  <li key={i}>
+                    <button
+                      className={`pagination-btn ${
+                        page === i + 1 ? "active" : ""
+                      }`}
+                      onClick={() => goToPage(i + 1)}
+                    >
+                      {i + 1}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Modern Modal */}
       {showPopup && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            background: "rgba(0,0,0,0.5)",
-            zIndex: 9999,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: "8px",
-              maxWidth: "400px",
-              width: "100%",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-              padding: "24px",
-              position: "relative",
-            }}
-          >
-            <h5 style={{ marginBottom: "16px" }}>Registration Required</h5>
-            <button
-              type="button"
-              style={{
-                position: "absolute",
-                top: "16px",
-                right: "16px",
-                background: "none",
-                border: "none",
-                fontSize: "1.2rem",
-                cursor: "pointer",
-              }}
-              onClick={handleClosePopupOnly}
-              aria-label="Close"
-            >
-              ×
-            </button>
-            <div>
+        <div className="modal-overlay">
+          <div className="modern-modal">
+            <div className="modal-header">
+              <div className="modal-icon">⚠️</div>
+              <h5>Registration Required</h5>
+              <button
+                type="button"
+                className="modal-close"
+                onClick={handleClosePopupOnly}
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="modal-body">
               <p>{popupMessage}</p>
             </div>
-            <div style={{ textAlign: "right", marginTop: "24px" }}>
+            <div className="modal-footer">
               <button
-                className="btn btn-primary"
+                className="btn-modal btn-secondary"
+                onClick={handleClosePopupOnly}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn-modal btn-primary"
                 onClick={handlePopupClose}
               >
-                Go to Registration
+                Register Owner
               </button>
             </div>
           </div>
