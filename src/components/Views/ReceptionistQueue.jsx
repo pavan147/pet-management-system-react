@@ -280,7 +280,7 @@ const ReceptionistQueue = () => {
                 return (
                   <div
                     key={appt.id ? appt.id : globalIdx}
-                    className={`appointment-card ${isCurrent ? "current" : ""} status-${statusColor}`}
+                    className={`queue-appointment-card ${isCurrent ? "current" : ""} status-${statusColor}`}
                   >
                     {/* Position Badge */}
                     <div className="position-badge">#{globalIdx + 1}</div>

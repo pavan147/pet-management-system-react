@@ -18,6 +18,7 @@ import LoginComponent from "./components/signin/LoginComponent";
 import SuccessPage from "./components/Views/SuccessPage";
 import { isUserLoggedIn, getDefaultDashboardPath } from "./services/VeterinaryRegistrationService";
 import PetDashboard from "./components/Views/dashboard";
+import DoctorDashboard from "./components/Views/DoctorDashboard";
 
 // Role-based home page routing
 function RoleBasedHome() {
@@ -53,6 +54,7 @@ function App() {
              
              {/* Role-based Dashboards */}
              <Route path="/receptionist-dashboard" element={<AuthenticatedRoute><ReceptionistDashboard /></AuthenticatedRoute>} />
+             <Route path="/doctor-dashboard" element={<AuthenticatedRoute><DoctorDashboard /></AuthenticatedRoute>} />
              <Route path="/dashboard" element={ <AuthenticatedRoute><PetDashboard /></AuthenticatedRoute> } />
              
              {/* Home Route - Redirect based on role */}

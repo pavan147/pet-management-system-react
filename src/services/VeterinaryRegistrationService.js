@@ -74,7 +74,15 @@ export const isPetOwnerUser = () => {
 }
 
 export const getDefaultDashboardPath = () => {
-    return isReceptionistUser() ? '/receptionist-dashboard' : '/dashboard';
+    if (isReceptionistUser()) {
+        return '/receptionist-dashboard';
+    }
+
+    if (isDoctorUser()) {
+        return '/doctor-dashboard';
+    }
+
+    return '/dashboard';
 }
 
 export const getUserRole = () => {
