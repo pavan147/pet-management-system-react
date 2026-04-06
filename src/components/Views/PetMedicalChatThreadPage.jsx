@@ -7,7 +7,7 @@ import {
   uploadImagesToThread,
   getMedicalChatImageBlob,
 } from "../../services/PetService";
-import { getUserRole } from "../../services/VeterinaryRegistrationService";
+import { getDefaultDashboardPath, getUserRole } from "../../services/VeterinaryRegistrationService";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png"];
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
@@ -31,6 +31,7 @@ const PetMedicalChatThreadPage = () => {
   const { threadId } = useParams();
   const role = getUserRole();
   const canUploadImages = role === "ROLE_PET_OWNER" || role === "ROLE_ADMIN";
+  const dashboardPath = getDefaultDashboardPath();
 
   const [thread, setThread] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -259,7 +260,7 @@ const PetMedicalChatThreadPage = () => {
           >
             All Threads
           </Link>
-          <Link className="btn btn-outline-secondary btn-sm" to="/dashboard">
+          <Link className="btn btn-outline-secondary btn-sm" to={dashboardPath}>
             Dashboard
           </Link>
         </div>

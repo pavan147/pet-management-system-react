@@ -4,6 +4,7 @@ import {
   getThreadsForPet,
   createMedicalChatThread,
 } from "../../services/PetService";
+import { getDefaultDashboardPath, getUserRole } from "../../services/VeterinaryRegistrationService";
 
 const getErrorMessage = (error, fallback) =>
   error?.response?.data?.error || error?.message || fallback;
@@ -27,6 +28,10 @@ const PetMedicalChatPage = () => {
   const [newTitle, setNewTitle] = useState("");
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState("");
+
+  const dashboardPath = getDefaultDashboardPath();
+  const role = getUserRole();
+  const canCreateThread = role === "ROLE_PET_OWNER" || role === "ROLE_ADMIN";
 
   const loadThreads = async () => {
     try {
@@ -70,14 +75,16 @@ const PetMedicalChatPage = () => {
           <small className="text-muted">Pet ID: {petId}</small>
         </div>
         <div className="d-flex gap-2">
-          <button
-            type="button"
-            className="btn btn-primary btn-sm"
-            onClick={() => { setShowNewForm((v) => !v); setCreateError(""); }}
-          >
-            {showNewForm ? "Cancel" : "+ New Thread"}
-          </button>
-          <Link className="btn btn-outline-secondary btn-sm" to="/dashboard">
+          {canCreateThread && (
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
+              onClick={() => { setShowNewForm((v) => !v); setCreateError(""); }}
+            >
+              {showNewForm ? "Cancel" : "+ New Thread"}
+            </button>
+          )}
+          <Link className="btn btn-outline-secondary btn-sm" to={dashboardPath}>
             Back to Dashboard
           </Link>
         </div>
@@ -85,7 +92,7 @@ const PetMedicalChatPage = () => {
 
       {error && <div className="alert alert-danger py-2">{error}</div>}
 
-      {showNewForm && (
+      {showNewForm && canCreateThread && (
         <div className="card shadow-sm mb-4">
           <div className="card-header bg-light">Start a New Medical Thread</div>
           <div className="card-body">
@@ -117,14 +124,20 @@ const PetMedicalChatPage = () => {
           <div className="card-body text-center text-muted py-5">
             <div style={{ fontSize: "2.5rem" }}>💬</div>
             <h5 className="mt-3">No medical threads yet</h5>
-            <p className="mb-3">Start a new thread to discuss a medical concern with your vet.</p>
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={() => setShowNewForm(true)}
-            >
-              + Start First Thread
-            </button>
+            {canCreateThread ? (
+              <>
+                <p className="mb-3">Start a new thread to discuss a medical concern with your vet.</p>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => setShowNewForm(true)}
+                >
+                  + Start First Thread
+                </button>
+              </>
+            ) : (
+              <p className="mb-0">No thread has been created for this pet yet. Once owner/admin creates a thread, you can add your suggestions there.</p>
+            )}
           </div>
         </div>
       ) : (

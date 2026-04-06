@@ -356,9 +356,18 @@ const DoctorDashboard = () => {
                       </div>
                     )}
 
-                    <div className="mt-2">
+                    <div className="mt-2 d-flex gap-2 flex-wrap">
+                      {item.latestThreadId ? (
+                        <Link
+                          className="btn btn-sm btn-primary"
+                          to={`/medical-chat/thread/${item.latestThreadId}`}
+                          title={item.latestThreadTitle || "Open latest thread"}
+                        >
+                          Open Latest Thread
+                        </Link>
+                      ) : null}
                       <Link className="btn btn-sm btn-outline-primary" to={`/pet-medical-chat/${item.petId}`}>
-                        Open Full Pet Case
+                        View All Threads
                       </Link>
                     </div>
                   </div>
@@ -393,3 +402,4 @@ const DoctorDashboard = () => {
 };
 
 export default DoctorDashboard;
+
