@@ -35,6 +35,7 @@ export const searchOwnerDetailsByEmailOrPhone = async (contact) => {
       address: data.address,
       email: data.email,
       phoneNumber: data.phoneNumber,
+      phoneVerified: data.phoneVerified === true,
       pets: data.pets || []
     };
   } catch (error) {

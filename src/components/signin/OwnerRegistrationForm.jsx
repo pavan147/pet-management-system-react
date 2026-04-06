@@ -1,7 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { saveRegistration, getDefaultDashboardPath } from "../../services/VeterinaryRegistrationService";
 import { searchOwnerDetailsByEmailOrPhone } from "../../services/OwnerService";
+import {
+  getOtpReadyPhoneNumber,
+  isValidMobileNumber,
+  normalizePhoneNumber,
+  sendMobileOtp,
+  verifyMobileOtp,
+} from "../../services/OtpService";
 import { useFormSubmit } from "../../hooks/useFormSubmit";
 import debounce from "lodash.debounce";
 import SuccessMessage from "../SuccessMessage";
@@ -9,12 +16,14 @@ import "../Forms/forms.css";
 
 const OwnerRegistrationForm = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   
   const [email, setEmail] = useState("");
-  const [emailOtp, setEmailOtp] = useState("");
   const [phone, setPhone] = useState("");
   const [phoneOtp, setPhoneOtp] = useState("");
+  const [phoneVerificationStatus, setPhoneVerificationStatus] = useState("idle");
+  const [phoneOtpSent, setPhoneOtpSent] = useState(false);
+  const [phoneOtpLoading, setPhoneOtpLoading] = useState(false);
+  const [phoneOtpFeedback, setPhoneOtpFeedback] = useState(null);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [ownerName, setOwnerName] = useState("");
@@ -90,22 +99,112 @@ const OwnerRegistrationForm = () => {
     return debouncedCheckEmail.cancel;
   }, [email, debouncedCheckEmail]);
 
-  const handleGetEmailOtp = (e) => {
-    e.preventDefault();
-    if (!email) {
-      alert("Please enter email first");
-      return;
-    }
-    alert("OTP sent to email (demo)");
+  const getOtpErrorMessage = (error, fallbackMessage) => {
+    return error.response?.data?.message || error.response?.data?.error || fallbackMessage;
   };
 
-  const handleGetPhoneOtp = (e) => {
+  const handlePhoneChange = (event) => {
+    const nextPhoneNumber = event.target.value;
+
+    setPhone(nextPhoneNumber);
+
+    setPhoneOtp("");
+    setPhoneOtpSent(false);
+    setPhoneOtpFeedback(null);
+
+    setPhoneVerificationStatus("idle");
+  };
+
+  const handleGetPhoneOtp = async (e) => {
     e.preventDefault();
-    if (!phone) {
-      alert("Please enter phone number first");
+
+    const normalizedPhoneNumber = getOtpReadyPhoneNumber(phone);
+
+    if (!isValidMobileNumber(phone)) {
+      setPhoneOtpFeedback({
+        type: "danger",
+        message: "Enter a valid 10-digit mobile number first.",
+      });
       return;
     }
-    alert("OTP sent to phone (demo)");
+
+    if (phoneNumberExists) {
+      setPhoneOtpFeedback({
+        type: "danger",
+        message: "This phone number is already registered. Please use a different number.",
+      });
+      return;
+    }
+
+    try {
+      setPhoneOtpLoading(true);
+      setPhoneOtpFeedback(null);
+      const response = await sendMobileOtp(normalizedPhoneNumber);
+      setPhoneOtpSent(true);
+      setPhoneVerificationStatus("sent");
+      setPhoneOtpFeedback({
+        type: "success",
+        message: response.message || "OTP sent successfully.",
+      });
+    } catch (error) {
+      setPhoneVerificationStatus("idle");
+      setPhoneOtpFeedback({
+        type: "danger",
+        message: getOtpErrorMessage(error, "Failed to send OTP. Please try again."),
+      });
+    } finally {
+      setPhoneOtpLoading(false);
+    }
+  };
+
+  const handleVerifyPhoneOtp = async (e) => {
+    e.preventDefault();
+
+    const normalizedPhoneNumber = getOtpReadyPhoneNumber(phone);
+
+    if (!isValidMobileNumber(phone)) {
+      setPhoneOtpFeedback({
+        type: "danger",
+        message: "Enter a valid 10-digit mobile number first.",
+      });
+      return;
+    }
+
+    if (!phoneOtp.trim()) {
+      setPhoneOtpFeedback({
+        type: "danger",
+        message: "Enter the OTP to verify your mobile number.",
+      });
+      return;
+    }
+
+    try {
+      setPhoneOtpLoading(true);
+      setPhoneOtpFeedback(null);
+      const response = await verifyMobileOtp(normalizedPhoneNumber, phoneOtp);
+
+      if (!response.verified) {
+        setPhoneOtpFeedback({
+          type: "danger",
+          message: "OTP verification failed. Please check the code and try again.",
+        });
+        return;
+      }
+
+      setPhoneVerificationStatus("verified");
+      setPhoneOtpSent(false);
+      setPhoneOtpFeedback({
+        type: "success",
+        message: "Mobile number verified successfully.",
+      });
+    } catch (error) {
+      setPhoneOtpFeedback({
+        type: "danger",
+        message: getOtpErrorMessage(error, "Failed to verify OTP. Please try again."),
+      });
+    } finally {
+      setPhoneOtpLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -116,10 +215,17 @@ const OwnerRegistrationForm = () => {
       return;
     }
 
+    const normalizedPhoneNumber = getOtpReadyPhoneNumber(phone);
+
+    if (!isValidMobileNumber(phone)) {
+      alert("Please enter a valid 10-digit mobile number.");
+      return;
+    }
+
     const formData = {
       ownerName,
       email,
-      phoneNumber: phone,
+      phoneNumber: normalizedPhoneNumber,
       password,
       confirmPassword,
       address,
@@ -213,44 +319,26 @@ const OwnerRegistrationForm = () => {
                     <i className="bi bi-envelope-fill"></i> Contact Information
                   </h5>
 
-                  {/* Email with OTP */}
+                  {/* Email */}
                   <div className="form-group">
                     <label className="form-label">
                       <span>Email Address</span>
                       <span className="required">*</span>
                     </label>
-                    <div className="input-group mb-2">
-                      <input
-                        type="email"
-                        className={`form-control ${errors.email ? "is-invalid" : ""} ${emailExists ? "is-invalid" : ""}`}
-                        placeholder="Enter your email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                      />
-                      <button className="btn btn-outline-primary" type="button" onClick={handleGetEmailOtp}>
-                        📧 Get OTP
-                      </button>
-                    </div>
+                    <input
+                      type="email"
+                      className={`form-control ${errors.email ? "is-invalid" : ""} ${emailExists ? "is-invalid" : ""}`}
+                      placeholder="Enter your email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
                     {errors.email && <div className="invalid-feedback">{errors.email}</div>}
                     {emailExists && (
                       <div className="alert alert-danger alert-sm">
                         This email is already registered. Please use a different email.
                       </div>
                     )}
-                    
-                    {/* Email OTP */}
-                    <div className="form-group mb-0">
-                      <label className="form-label small mb-2">Email OTP</label>
-                      <input
-                        type="text"
-                        className={`form-control ${errors.emailOtp ? "is-invalid" : ""}`}
-                        placeholder="Enter OTP received"
-                        value={emailOtp}
-                        onChange={(e) => setEmailOtp(e.target.value)}
-                      />
-                      {errors.emailOtp && <div className="invalid-feedback">{errors.emailOtp}</div>}
-                    </div>
                   </div>
 
                   {/* Phone Number with OTP */}
@@ -259,17 +347,28 @@ const OwnerRegistrationForm = () => {
                       <span>Phone Number</span>
                       <span className="required">*</span>
                     </label>
+                    <div className="d-flex justify-content-between align-items-center mb-2">
+                      <small className="text-muted">Mobile OTP is optional. You can verify now or later from the dashboard.</small>
+                      {phoneVerificationStatus === "verified" && (
+                        <span className="badge bg-success-subtle text-success border border-success-subtle">Verified</span>
+                      )}
+                    </div>
                     <div className="input-group mb-2">
                       <input
                         type="tel"
                         className={`form-control ${errors.phone || errors.phoneNumber ? "is-invalid" : ""} ${phoneNumberExists ? "is-invalid" : ""}`}
                         placeholder="Enter your phone number"
                         value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
+                        onChange={handlePhoneChange}
                         required
                       />
-                      <button className="btn btn-outline-primary" type="button" onClick={handleGetPhoneOtp}>
-                        📱 Get OTP
+                      <button
+                        className="btn btn-outline-primary"
+                        type="button"
+                        onClick={handleGetPhoneOtp}
+                        disabled={phoneOtpLoading || phoneVerificationStatus === "verified"}
+                      >
+                        {phoneOtpLoading && phoneVerificationStatus !== "verified" ? "Sending..." : "Send OTP"}
                       </button>
                     </div>
                     {(errors.phone || errors.phoneNumber) && (
@@ -280,19 +379,37 @@ const OwnerRegistrationForm = () => {
                         This phone number is already registered. Please use a different number.
                       </div>
                     )}
-                    
-                    {/* Phone OTP */}
-                    <div className="form-group mb-0">
-                      <label className="form-label small mb-2">Phone OTP</label>
-                      <input
-                        type="text"
-                        className={`form-control ${errors.phoneOtp ? "is-invalid" : ""}`}
-                        placeholder="Enter OTP received"
-                        value={phoneOtp}
-                        onChange={(e) => setPhoneOtp(e.target.value)}
-                      />
-                      {errors.phoneOtp && <div className="invalid-feedback">{errors.phoneOtp}</div>}
-                    </div>
+
+                    {phoneOtpFeedback && (
+                      <div className={`alert alert-${phoneOtpFeedback.type} alert-sm mb-2`}>
+                        {phoneOtpFeedback.message}
+                      </div>
+                    )}
+
+                    {(phoneOtpSent || phoneOtp) && phoneVerificationStatus !== "verified" && (
+                      <div className="form-group mb-0">
+                        <label className="form-label small mb-2">Mobile OTP</label>
+                        <div className="input-group">
+                          <input
+                            type="text"
+                            className={`form-control ${errors.phoneOtp ? "is-invalid" : ""}`}
+                            placeholder="Enter OTP received"
+                            value={phoneOtp}
+                            onChange={(e) => setPhoneOtp(e.target.value)}
+                            disabled={phoneVerificationStatus === "verified"}
+                          />
+                          <button
+                            className="btn btn-primary"
+                            type="button"
+                            onClick={handleVerifyPhoneOtp}
+                            disabled={phoneOtpLoading || phoneVerificationStatus === "verified"}
+                          >
+                            {phoneOtpLoading && phoneVerificationStatus !== "verified" ? "Verifying..." : phoneVerificationStatus === "verified" ? "Verified" : "Verify OTP"}
+                          </button>
+                        </div>
+                        {errors.phoneOtp && <div className="invalid-feedback d-block">{errors.phoneOtp}</div>}
+                      </div>
+                    )}
                   </div>
                 </div>
 

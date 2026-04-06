@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { getDashboardData, downloadPrescriptionPdf } from "../../services/PetService";
+import {
+  getOtpReadyPhoneNumber,
+  isValidMobileNumber,
+  sendMobileOtp,
+  verifyMobileOtp,
+} from "../../services/OtpService";
+
+const getOtpErrorMessage = (error, fallbackMessage) => {
+  return error.response?.data?.message || error.response?.data?.error || fallbackMessage;
+};
+
+const getOwnerPhoneVerificationStatus = (owner) => owner?.phoneVerified === true;
 
 // Utility function to calculate days remaining
 const getDaysRemaining = (validTillDate) => {
@@ -48,7 +60,97 @@ const getPhotoDataUrl = (base64, contentType) => {
 };
 
 // Owner Info Card Component
-const OwnerCard = ({ owner }) => {
+const OwnerCard = ({ owner, onPhoneVerified }) => {
+  const [showVerificationForm, setShowVerificationForm] = useState(false);
+  const [phoneOtp, setPhoneOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [otpFeedback, setOtpFeedback] = useState(null);
+  const phoneVerified = getOwnerPhoneVerificationStatus(owner);
+
+  useEffect(() => {
+    setShowVerificationForm(false);
+    setPhoneOtp("");
+    setOtpSent(false);
+    setOtpFeedback(null);
+  }, [owner]);
+
+  const handleSendOtp = async () => {
+    const normalizedPhoneNumber = getOtpReadyPhoneNumber(owner?.phoneNumber || "");
+
+    if (!isValidMobileNumber(owner?.phoneNumber || "")) {
+      setOtpFeedback({
+        type: "danger",
+        message: "A valid mobile number is required before sending OTP.",
+      });
+      return;
+    }
+
+    try {
+      setOtpLoading(true);
+      setOtpFeedback(null);
+      const response = await sendMobileOtp(normalizedPhoneNumber);
+      setOtpSent(true);
+      setShowVerificationForm(true);
+      setOtpFeedback({
+        type: "success",
+        message: response.message || "OTP sent successfully.",
+      });
+    } catch (error) {
+      setOtpFeedback({
+        type: "danger",
+        message: getOtpErrorMessage(error, "Failed to send OTP. Please try again."),
+      });
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    const normalizedPhoneNumber = getOtpReadyPhoneNumber(owner?.phoneNumber || "");
+
+    if (!phoneOtp.trim()) {
+      setOtpFeedback({
+        type: "danger",
+        message: "Enter the OTP received on your mobile number.",
+      });
+      return;
+    }
+
+    try {
+      setOtpLoading(true);
+      setOtpFeedback(null);
+      const response = await verifyMobileOtp(normalizedPhoneNumber, phoneOtp);
+
+      if (!response.verified) {
+        setOtpFeedback({
+          type: "danger",
+          message: response.message || "OTP verification failed. Please check the code and try again.",
+        });
+        return;
+      }
+
+      setPhoneOtp("");
+      setOtpSent(false);
+      setShowVerificationForm(false);
+      setOtpFeedback({
+        type: "success",
+        message: response.message || "Mobile number verified successfully.",
+      });
+
+      if (onPhoneVerified) {
+        await onPhoneVerified();
+      }
+    } catch (error) {
+      setOtpFeedback({
+        type: "danger",
+        message: getOtpErrorMessage(error, "Failed to verify OTP. Please try again."),
+      });
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
   return (
     <div className="card shadow-sm mb-4 border-0" style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", color: "white" }}>
       <div className="card-body">
@@ -67,11 +169,59 @@ const OwnerCard = ({ owner }) => {
           </div>
           <div className="col-6">
             <strong>📱</strong> {owner.phoneNumber}
+            <span className={`badge ms-2 ${phoneVerified ? "text-bg-success" : "text-bg-warning text-dark"}`}>
+              {phoneVerified ? "✓ Verified" : "Not verified"}
+            </span>
           </div>
           <div className="col-12">
             <strong>📍</strong> {owner.address}
           </div>
         </div>
+
+        {!phoneVerified && (
+          <div className="mt-3 p-3 rounded-3" style={{ backgroundColor: "rgba(255, 255, 255, 0.16)" }}>
+            <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+              <div>
+                <div className="fw-semibold">Mobile OTP verification is still pending.</div>
+                <small className="text-white text-opacity-75">You can continue using the dashboard and verify your mobile number whenever needed.</small>
+              </div>
+              <button
+                type="button"
+                className="btn btn-light btn-sm"
+                onClick={handleSendOtp}
+                disabled={otpLoading}
+              >
+                {otpLoading ? "Sending..." : otpSent ? "Resend OTP" : "Verify mobile"}
+              </button>
+            </div>
+
+            {otpFeedback && (
+              <div className={`alert alert-${otpFeedback.type} py-2 px-3 mt-3 mb-0`}>
+                {otpFeedback.message}
+              </div>
+            )}
+
+            {(showVerificationForm || otpSent || phoneOtp) && (
+              <div className="input-group input-group-sm mt-3">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Enter OTP"
+                  value={phoneOtp}
+                  onChange={(event) => setPhoneOtp(event.target.value)}
+                />
+                <button
+                  type="button"
+                  className="btn btn-warning"
+                  onClick={handleVerifyOtp}
+                  disabled={otpLoading}
+                >
+                  {otpLoading ? "Verifying..." : "Verify OTP"}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -569,7 +719,7 @@ const PetDashboard = () => {
         {/* Main Content - Right Side */}
         <div className="col-lg-9">
           {/* Owner Info */}
-          <OwnerCard owner={owner} />
+          <OwnerCard owner={owner} onPhoneVerified={fetchDashboardData} />
 
           {/* Pets Section */}
           <div className="mb-4">

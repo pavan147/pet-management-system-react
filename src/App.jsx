@@ -45,7 +45,7 @@ function App() {
     
       <Header />
     <div className="app-bg">
-      <div class="container  text-center">
+      <div className="container text-center">
        
            <Routes>
              {/* Public Routes */}
