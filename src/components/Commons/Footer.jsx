@@ -1,8 +1,15 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import "./common.css";
+import {
+  isPetOwnerUser,
+  isUserLoggedIn,
+} from "../../services/VeterinaryRegistrationService";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const isAuth = isUserLoggedIn();
+  const isPetOwner = isPetOwnerUser();
 
   return (
     <footer className="modern-footer">
@@ -16,9 +23,9 @@ const Footer = () => {
           <div className="footer-section">
             <h6 className="footer-subtitle">Quick Links</h6>
             <ul className="footer-links">
-              <li><a href="/">📊 Dashboard</a></li>
-              <li><a href="/book-appointment">📅 Book Appointment</a></li>
-              <li><a href="/add-pet">🐕 Add Pet</a></li>
+              {isAuth && <li><Link to="/">📊 Dashboard</Link></li>}
+              {isAuth && <li><Link to="/book-appointment">📅 Book Appointment</Link></li>}
+              {isAuth && !isPetOwner && <li><Link to="/add-pet">🐕 Add Pet</Link></li>}
             </ul>
           </div>
 

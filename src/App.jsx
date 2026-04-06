@@ -16,7 +16,11 @@ import ReceptionistQueue from "./components/Views/ReceptionistQueue";
 import ReceptionistDashboard from "./components/Views/ReceptionistDashboard";
 import LoginComponent from "./components/signin/LoginComponent";
 import SuccessPage from "./components/Views/SuccessPage";
-import { isUserLoggedIn, getDefaultDashboardPath } from "./services/VeterinaryRegistrationService";
+import {
+  isUserLoggedIn,
+  getDefaultDashboardPath,
+  isPetOwnerUser,
+} from "./services/VeterinaryRegistrationService";
 import PetDashboard from "./components/Views/dashboard";
 import DoctorDashboard from "./components/Views/DoctorDashboard";
 
@@ -40,6 +44,20 @@ function App() {
 
   }
 
+  function NonPetOwnerRoute({ children }) {
+    const isAuth = isUserLoggedIn();
+
+    if (!isAuth) {
+      return <Navigate to="/login" />;
+    }
+
+    if (isPetOwnerUser()) {
+      return <Navigate to={getDefaultDashboardPath()} replace />;
+    }
+
+    return children;
+  }
+
   return (
     <>   
     
@@ -53,8 +71,8 @@ function App() {
              <Route path="/owner-registration" element={<OwnerRegistrationForm />} />
              
              {/* Role-based Dashboards */}
-             <Route path="/receptionist-dashboard" element={<AuthenticatedRoute><ReceptionistDashboard /></AuthenticatedRoute>} />
-             <Route path="/doctor-dashboard" element={<AuthenticatedRoute><DoctorDashboard /></AuthenticatedRoute>} />
+             <Route path="/receptionist-dashboard" element={<NonPetOwnerRoute><ReceptionistDashboard /></NonPetOwnerRoute>} />
+             <Route path="/doctor-dashboard" element={<NonPetOwnerRoute><DoctorDashboard /></NonPetOwnerRoute>} />
              <Route path="/dashboard" element={ <AuthenticatedRoute><PetDashboard /></AuthenticatedRoute> } />
              
              {/* Home Route - Redirect based on role */}
@@ -65,12 +83,12 @@ function App() {
               
               {/* Protected Routes - User must be logged in */ }
               <Route path="/SuccessPage" element={<AuthenticatedRoute><SuccessPage /></AuthenticatedRoute>} />
-              <Route path="/pet-vaccination-record" element={<AuthenticatedRoute><PetVaccinationRecord /></AuthenticatedRoute>} />
-              <Route path="/add-pet" element={<AuthenticatedRoute><PetRegistrationForm /></AuthenticatedRoute>} />
-              <Route path="/pet-medical" element={<AuthenticatedRoute><PetMedicalHistoryForm /></AuthenticatedRoute>} />
-              <Route path="/view-appointment" element={<AuthenticatedRoute><ReceptionistQueue /></AuthenticatedRoute>} />
+              <Route path="/pet-vaccination-record" element={<NonPetOwnerRoute><PetVaccinationRecord /></NonPetOwnerRoute>} />
+              <Route path="/add-pet" element={<NonPetOwnerRoute><PetRegistrationForm /></NonPetOwnerRoute>} />
+              <Route path="/pet-medical" element={<NonPetOwnerRoute><PetMedicalHistoryForm /></NonPetOwnerRoute>} />
+              <Route path="/view-appointment" element={<NonPetOwnerRoute><ReceptionistQueue /></NonPetOwnerRoute>} />
               <Route path="/test" element={<AuthenticatedRoute><SuccessMessage status="owner" /></AuthenticatedRoute>} />
-              <Route path="/register" element={<AuthenticatedRoute><OwnerRegistrationForm /> </AuthenticatedRoute>} />
+              <Route path="/register" element={<NonPetOwnerRoute><OwnerRegistrationForm /> </NonPetOwnerRoute>} />
            </Routes>
         
         </div>

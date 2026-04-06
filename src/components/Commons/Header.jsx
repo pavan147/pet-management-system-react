@@ -6,12 +6,15 @@ import {
   isUserLoggedIn,
   getLoggedInDisplayName,
   getUserRole,
+  isPetOwnerUser,
 } from "../../services/VeterinaryRegistrationService";
 
 const Header = () => {
   const isAuth = isUserLoggedIn();
   const loggedInUser = getLoggedInDisplayName();
   const userRole = getUserRole();
+  const isPetOwner = isPetOwnerUser();
+  const canAccessManagementServices = isAuth && !isPetOwner;
   const navigate = useNavigate();
 
   const formatRole = (role) => {
@@ -61,56 +64,57 @@ const Header = () => {
                       📊 Dashboard
                     </Link>
                   </li>
-                  <li className="nav-item dropdown">
-                    <a
-                      className="nav-link dropdown-toggle"
-                      href="#"
-                      role="button"
-                      data-bs-toggle="dropdown"
-                      aria-expanded="false"
-                    >
-                      📋 Services
-                    </a>
-                    <ul className="dropdown-menu dropdown-menu-end modern-dropdown">
-                      <li>
-                        <Link className="dropdown-item" to="/register">
-                          👤 Owner Registration
-                        </Link>
-                      </li>
-                      <li>
-                        <Link className="dropdown-item" to="/add-pet">
-                          🐕 Add Pet
-                        </Link>
-                      </li>
-                      <li>
-                        <Link className="dropdown-item" to="/pet-vaccination-record">
-                          💉 Pet Vaccination
-                        </Link>
-                      </li>
-                      <li>
-                        <Link className="dropdown-item" to="/pet-medical">
-                          📝 Medical History
-                        </Link>
-                      </li>
-                      <li>
-                        <hr className="dropdown-divider" />
-                      </li>
-                      <li>
-                        <Link className="dropdown-item" to="/book-appointment">
-                          📅 Book Appointment
-                        </Link>
-                      </li>
-                    </ul>
-                  </li>
+                  {canAccessManagementServices && (
+                    <li className="nav-item dropdown">
+                      <a
+                        className="nav-link dropdown-toggle"
+                        href="#"
+                        role="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                      >
+                        📋 Services
+                      </a>
+                      <ul className="dropdown-menu dropdown-menu-end modern-dropdown">
+                        <li>
+                          <Link className="dropdown-item" to="/register">
+                            👤 Owner Registration
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" to="/add-pet">
+                            🐕 Add Pet
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" to="/pet-vaccination-record">
+                            💉 Pet Vaccination
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" to="/pet-medical">
+                            📝 Medical History
+                          </Link>
+                        </li>
+                        <li>
+                          <hr className="dropdown-divider" />
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" to="/book-appointment">
+                            📅 Book Appointment
+                          </Link>
+                        </li>
+                      </ul>
+                    </li>
+                  )}
+                  {isPetOwner && (
+                    <li className="nav-item">
+                      <Link className="nav-link" to="/book-appointment">
+                        📅 Book Appointment
+                      </Link>
+                    </li>
+                  )}
                 </>
-              )}
-              
-              {!isAuth && (
-                <li className="nav-item">
-                  <Link className="nav-link" to="/book-appointment">
-                    📅 Book Appointment
-                  </Link>
-                </li>
               )}
 
               {isAuth && (
