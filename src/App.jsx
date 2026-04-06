@@ -1,7 +1,4 @@
-import { useState } from "react";
-import { Routes, Route, Router, Navigate } from "react-router-dom";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import "./App.css";
 import Header from "./components/Commons/Header";
 import OwnerRegistrationForm from "./components/signin/OwnerRegistrationForm";
@@ -10,7 +7,6 @@ import PetVaccinationRecord from "./components/Forms/PetVaccinationRecord ";
 import PetRegistrationForm from "./components/Forms/PetRegistrationForm";
 import SuccessMessage from "./components/SuccessMessage";
 import PetMedicalHistoryForm from "./components/Forms/PetMedicalHistoryForm";
-import AppointmentForm from "./components/Forms/DoctorAppointmentForm";
 import DoctorAppointmentForm from "./components/Forms/DoctorAppointmentForm";
 import ReceptionistQueue from "./components/Views/ReceptionistQueue";
 import ReceptionistDashboard from "./components/Views/ReceptionistDashboard";
@@ -25,41 +21,30 @@ import {
 import PetDashboard from "./components/Views/dashboard";
 import DoctorDashboard from "./components/Views/DoctorDashboard";
 import CommunityPage from "./components/Community/CommunityPage";
+import PetMedicalChatPage from "./components/Views/PetMedicalChatPage";
 
 // Role-based home page routing
 function RoleBasedHome() {
   return <Navigate to={getDefaultDashboardPath()} />;
 }
 
+function RequireAuth() {
+  return isUserLoggedIn() ? <Outlet /> : <Navigate to="/login" />;
+}
+
+function RequireNonPetOwner() {
+  if (!isUserLoggedIn()) {
+    return <Navigate to="/login" />;
+  }
+
+  if (isPetOwnerUser()) {
+    return <Navigate to={getDefaultDashboardPath()} replace />;
+  }
+
+  return <Outlet />;
+}
+
 function App() {
-  const [count, setCount] = useState(0);
-
-  function AuthenticatedRoute({children}){
-
-    const isAuth = isUserLoggedIn();
-
-    if(isAuth) {
-      return children;
-    }
-
-    return <Navigate to="/login" />
-
-  }
-
-  function NonPetOwnerRoute({ children }) {
-    const isAuth = isUserLoggedIn();
-
-    if (!isAuth) {
-      return <Navigate to="/login" />;
-    }
-
-    if (isPetOwnerUser()) {
-      return <Navigate to={getDefaultDashboardPath()} replace />;
-    }
-
-    return children;
-  }
-
   return (
     <>   
     
@@ -72,28 +57,32 @@ function App() {
              <Route path="/login" element={ <LoginComponent/> } />
              <Route path="/owner-registration" element={<OwnerRegistrationForm />} />
              
-             {/* Role-based Dashboards */}
-             <Route path="/receptionist-dashboard" element={<NonPetOwnerRoute><ReceptionistDashboard /></NonPetOwnerRoute>} />
-             <Route path="/doctor-dashboard" element={<NonPetOwnerRoute><DoctorDashboard /></NonPetOwnerRoute>} />
-             <Route path="/dashboard" element={ <AuthenticatedRoute><PetDashboard /></AuthenticatedRoute> } />
-             
-             {/* Home Route - Redirect based on role */}
-             <Route path="/" element={<AuthenticatedRoute><RoleBasedHome /></AuthenticatedRoute>} />
-             
-             {/* Appointment Routes */}
-              <Route path="/book-appointment" element={<AuthenticatedRoute><DoctorAppointmentForm /></AuthenticatedRoute>} /> 
-              <Route path="/pet-marketplace" element={<AuthenticatedRoute><PetMarketplace /></AuthenticatedRoute>} />
-              <Route path="/community" element={<AuthenticatedRoute><CommunityPage /></AuthenticatedRoute>} />
-              <Route path="/community/lost-pets" element={<AuthenticatedRoute><CommunityPage lostPetsOnly /></AuthenticatedRoute>} />
-              
-              {/* Protected Routes - User must be logged in */ }
-              <Route path="/SuccessPage" element={<AuthenticatedRoute><SuccessPage /></AuthenticatedRoute>} />
-              <Route path="/pet-vaccination-record" element={<NonPetOwnerRoute><PetVaccinationRecord /></NonPetOwnerRoute>} />
-              <Route path="/add-pet" element={<NonPetOwnerRoute><PetRegistrationForm /></NonPetOwnerRoute>} />
-              <Route path="/pet-medical" element={<NonPetOwnerRoute><PetMedicalHistoryForm /></NonPetOwnerRoute>} />
-              <Route path="/view-appointment" element={<NonPetOwnerRoute><ReceptionistQueue /></NonPetOwnerRoute>} />
-              <Route path="/test" element={<AuthenticatedRoute><SuccessMessage status="owner" /></AuthenticatedRoute>} />
-              <Route path="/register" element={<NonPetOwnerRoute><OwnerRegistrationForm /> </NonPetOwnerRoute>} />
+             <Route element={<RequireAuth />}>
+               {/* Role-based Dashboards */}
+               <Route path="/dashboard" element={<PetDashboard />} />
+
+               {/* Home Route - Redirect based on role */}
+               <Route path="/" element={<RoleBasedHome />} />
+
+               {/* Appointment Routes */}
+               <Route path="/book-appointment" element={<DoctorAppointmentForm />} />
+               <Route path="/pet-marketplace" element={<PetMarketplace />} />
+               <Route path="/community" element={<CommunityPage />} />
+               <Route path="/community/lost-pets" element={<CommunityPage lostPetsOnly />} />
+               <Route path="/pet-medical-chat/:petId" element={<PetMedicalChatPage />} />
+               <Route path="/SuccessPage" element={<SuccessPage />} />
+               <Route path="/test" element={<SuccessMessage status="owner" />} />
+
+               <Route element={<RequireNonPetOwner />}>
+                 <Route path="/receptionist-dashboard" element={<ReceptionistDashboard />} />
+                 <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
+                 <Route path="/pet-vaccination-record" element={<PetVaccinationRecord />} />
+                 <Route path="/add-pet" element={<PetRegistrationForm />} />
+                 <Route path="/pet-medical" element={<PetMedicalHistoryForm />} />
+                 <Route path="/view-appointment" element={<ReceptionistQueue />} />
+                 <Route path="/register" element={<OwnerRegistrationForm />} />
+               </Route>
+             </Route>
            </Routes>
         
         </div>

@@ -140,4 +140,51 @@ export const downloadPrescriptionPdf = async (petId, petMedicalId) => {
   window.URL.revokeObjectURL(url);
 };
 
+export const getMedicalChatThread = async (petId) => {
+  const response = await axios.get(`${BASE_URL}/medical-chat/${petId}`);
+  return response.data;
+};
+
+export const searchMedicalChatPets = async (query) => {
+  const response = await axios.get(`${BASE_URL}/medical-chat/search`, {
+    params: { query },
+  });
+  return response.data;
+};
+
+export const sendMedicalChatMessage = async (petId, payload) => {
+  const response = await axios.post(`${BASE_URL}/medical-chat/${petId}/messages`, payload, {
+    headers: { "Content-Type": "application/json" },
+  });
+  return response.data;
+};
+
+export const uploadMedicalChatImages = async (petId, files, message, emergency) => {
+  const formData = new FormData();
+  files.forEach((file) => formData.append("files", file));
+  if (message) {
+    formData.append("message", message);
+  }
+  formData.append("emergency", `${Boolean(emergency)}`);
+
+  const response = await axios.post(`${BASE_URL}/medical-chat/${petId}/images`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return response.data;
+};
+
+export const getMedicalChatImageUrl = (imageId) => `${BASE_URL}/medical-chat/images/${imageId}`;
+
+export const getMedicalChatImageBlob = async (imageId) => {
+  const response = await axios.get(`${BASE_URL}/medical-chat/images/${imageId}`, {
+    responseType: "blob",
+  });
+  return response.data;
+};
+
+export const getEmergencyMedicalFeed = async () => {
+  const response = await axios.get(`${BASE_URL}/medical-chat/emergency-feed`);
+  return response.data;
+};
+
 

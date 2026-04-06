@@ -1,6 +1,12 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { getLoggedInUser } from "../../services/VeterinaryRegistrationService";
-import { fetchAppointments } from "../../services/PetService";
+import {
+  fetchAppointments,
+  getEmergencyMedicalFeed,
+  getMedicalChatImageBlob,
+  searchMedicalChatPets,
+} from "../../services/PetService";
 import "./DoctorDashboard.css";
 
 const dummyTasks = [
@@ -52,26 +58,112 @@ const getStatusMeta = (status) => {
   return statusMap[status] || { label: status || "Unknown", className: "text-bg-secondary" };
 };
 
+const getLatestTimestamp = (item) => item?.latestMessageAt || "";
+
 const DoctorDashboard = () => {
   const doctorName = getLoggedInUser() || "Doctor";
   const [appointments, setAppointments] = useState([]);
+  const [emergencyFeed, setEmergencyFeed] = useState([]);
+  const [chatSearchQuery, setChatSearchQuery] = useState("");
+  const [chatPets, setChatPets] = useState([]);
+  const [emergencyImagePreviews, setEmergencyImagePreviews] = useState({});
   const [loading, setLoading] = useState(true);
+  const [chatSearchLoading, setChatSearchLoading] = useState(true);
+  const imagePreviewUrlRef = useRef([]);
+
+  const visibleMedicalCases = useMemo(() => {
+    const emergencyByPetId = new Map(emergencyFeed.map((item) => [item.petId, item]));
+
+    return [...chatPets]
+      .map((item) => ({
+        ...item,
+        emergencyDetails: emergencyByPetId.get(item.petId) || null,
+      }))
+      .sort((a, b) => {
+        if (a.emergency !== b.emergency) {
+          return a.emergency ? -1 : 1;
+        }
+        return new Date(getLatestTimestamp(b) || 0) - new Date(getLatestTimestamp(a) || 0);
+      });
+  }, [chatPets, emergencyFeed]);
 
   const todayDate = getTodayDate();
 
   useEffect(() => {
-    setLoading(true);
-    fetchAppointments(todayDate)
-      .then((res) => {
-        setAppointments(res.data || []);
+    Promise.all([fetchAppointments(todayDate), getEmergencyMedicalFeed(), searchMedicalChatPets("")])
+      .then(([appointmentRes, emergencyRes, chatSearchRes]) => {
+        setAppointments(appointmentRes.data || []);
+        setEmergencyFeed(emergencyRes || []);
+        setChatPets(chatSearchRes || []);
         setLoading(false);
+        setChatSearchLoading(false);
       })
       .catch((err) => {
         console.error("Error fetching doctor queue:", err);
         setAppointments([]);
+        setEmergencyFeed([]);
+        setChatPets([]);
         setLoading(false);
+        setChatSearchLoading(false);
       });
   }, [todayDate]);
+
+  const handleSearchMedicalChats = async (event) => {
+    event?.preventDefault();
+    try {
+      setChatSearchLoading(true);
+      const results = await searchMedicalChatPets(chatSearchQuery);
+      setChatPets(results || []);
+    } catch (error) {
+      console.error("Error searching medical chat pets:", error);
+      setChatPets([]);
+    } finally {
+      setChatSearchLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const imageIds = emergencyFeed
+      .flatMap((item) => (item.images || []).map((img) => img.id))
+      .filter((id) => !emergencyImagePreviews[id]);
+
+    if (!imageIds.length) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadEmergencyImages = async () => {
+      const nextPreviews = {};
+      for (const imageId of imageIds) {
+        try {
+          const blob = await getMedicalChatImageBlob(imageId);
+          const objectUrl = URL.createObjectURL(blob);
+          nextPreviews[imageId] = objectUrl;
+          imagePreviewUrlRef.current.push(objectUrl);
+        } catch {
+          // Do not block doctor dashboard when one image fails.
+        }
+      }
+
+      if (!cancelled && Object.keys(nextPreviews).length > 0) {
+        setEmergencyImagePreviews((prev) => ({ ...prev, ...nextPreviews }));
+      }
+    };
+
+    loadEmergencyImages();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [emergencyFeed, emergencyImagePreviews]);
+
+  useEffect(() => {
+    return () => {
+      imagePreviewUrlRef.current.forEach((url) => URL.revokeObjectURL(url));
+      imagePreviewUrlRef.current = [];
+    };
+  }, []);
 
   const stats = useMemo(() => {
     const waiting = appointments.filter((a) => a.status === "waiting").length;
@@ -166,6 +258,87 @@ const DoctorDashboard = () => {
         </article>
 
         <aside className="doctor-side-panels">
+          <article className="doctor-panel">
+            <div className="doctor-panel-header">
+              <h3>Medical Chat Cases</h3>
+            </div>
+            <form onSubmit={handleSearchMedicalChats} className="d-flex gap-2 mb-3">
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Search by pet, owner, phone, pet ID"
+                value={chatSearchQuery}
+                onChange={(event) => setChatSearchQuery(event.target.value)}
+              />
+              <button className="btn btn-outline-primary" type="submit" disabled={chatSearchLoading}>
+                Search
+              </button>
+            </form>
+            <small className="text-muted d-block mb-3">
+              Search any pet medical chat by pet name, owner name, phone number, or pet ID. Emergency cases are highlighted first.
+            </small>
+
+            {chatSearchLoading ? (
+              <div className="doctor-table-status">Loading medical chat pets...</div>
+            ) : visibleMedicalCases.length === 0 ? (
+              <div className="doctor-table-status">No medical chat cases found.</div>
+            ) : (
+              <div className="d-flex flex-column gap-2" style={{ maxHeight: "280px", overflowY: "auto" }}>
+                {visibleMedicalCases.slice(0, 12).map((item) => (
+                  <div key={item.petId} className="border rounded p-2">
+                    <div className="d-flex justify-content-between align-items-start gap-2 flex-wrap">
+                      <div className="fw-semibold">{item.petName} (#{item.petId})</div>
+                      <div className="d-flex gap-1 flex-wrap">
+                        {item.emergency && <span className="badge text-bg-danger">Emergency</span>}
+                        <span className="badge text-bg-light">Chat Case</span>
+                      </div>
+                    </div>
+                    <small className="text-muted d-block">{item.petType} • {item.breed || "Breed N/A"}</small>
+                    <small className="text-muted d-block">Owner: {item.ownerName} • {item.ownerPhoneNumber || "No phone"}</small>
+                    <small className="text-muted d-block">Latest: {item.latestMessage || "No text message"}</small>
+                    {item.latestMessageAt && (
+                      <small className="text-muted d-block">Updated: {formatDisplayDate(item.latestMessageAt)}</small>
+                    )}
+
+                    {item.emergencyDetails?.images?.length > 0 && (
+                      <div className="d-flex flex-wrap gap-2 mt-2">
+                        {item.emergencyDetails.images.slice(0, 3).map((img) => {
+                          const previewUrl = emergencyImagePreviews[img.id];
+                          if (!previewUrl) {
+                            return (
+                              <div
+                                key={img.id}
+                                className="d-flex align-items-center justify-content-center text-muted small"
+                                style={{ width: "66px", height: "50px", borderRadius: "6px", background: "#f1f3f5" }}
+                              >
+                                ...
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <img
+                              key={img.id}
+                              src={previewUrl}
+                              alt={img.fileName || "Emergency"}
+                              style={{ width: "66px", height: "50px", objectFit: "cover", borderRadius: "6px" }}
+                            />
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    <div className="mt-2">
+                      <Link className="btn btn-sm btn-outline-primary" to={`/pet-medical-chat/${item.petId}`}>
+                        Open Full Pet Case
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </article>
+
           <article className="doctor-panel">
             <div className="doctor-panel-header">
               <h3>Today's Tasks</h3>

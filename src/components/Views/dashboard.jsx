@@ -452,6 +452,11 @@ const PetCard = ({ pet, vaccinations, medicalRecords }) => {
             <h4 className="mb-1 text-primary">{pet.petName}</h4>
             <p className="mb-0 text-muted">{pet.petType} • {pet.breed}</p>
             <small className="text-success">Registered: {pet.registrationDate}</small>
+            <div className="mt-2">
+              <Link className="btn btn-sm btn-outline-primary" to={`/pet-medical-chat/${pet.id}`}>
+                Open Medical Chat
+              </Link>
+            </div>
           </div>
         </div>
       </div>
