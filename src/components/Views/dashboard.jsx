@@ -21,6 +21,24 @@ const getVaccinationStatus = (validTillDate) => {
   return { status: "active", color: "success", text: `Valid (${daysRemaining} days)` };
 };
 
+const getPrescriptionValidity = (validTillDate) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const expiry = new Date(validTillDate);
+  expiry.setHours(0, 0, 0, 0);
+
+  if (Number.isNaN(expiry.getTime())) {
+    return { isExpired: false, text: "N/A", color: "secondary" };
+  }
+
+  if (expiry < today) {
+    return { isExpired: true, text: "Expired", color: "danger" };
+  }
+
+  return { isExpired: false, text: validTillDate, color: "success" };
+};
+
 // Utility function to convert base64 to image data URL
 const getPhotoDataUrl = (base64, contentType) => {
   if (!base64 || !contentType) {
@@ -393,7 +411,9 @@ const PetCard = ({ pet, vaccinations, medicalRecords }) => {
                 <div className="alert alert-info">No medical records yet.</div>
               ) : (
                 <div style={{ maxHeight: "500px", overflowY: "auto" }}>
-                  {medicalRecords.map((record, idx) => (
+                  {medicalRecords.map((record, idx) => {
+                    const validity = getPrescriptionValidity(record.validateTill);
+                    return (
                     <div key={idx} className="card border-0 shadow-sm mb-3" style={{ borderLeft: "4px solid #6c63ff" }}>
                       <div className="card-body">
                         {/* Header row */}
@@ -402,8 +422,8 @@ const PetCard = ({ pet, vaccinations, medicalRecords }) => {
                             <span className="me-2">📅</span>{record.visitDate}
                           </h6>
                           <div className="d-flex align-items-center gap-2 flex-wrap">
-                            <span className="badge bg-primary rounded-pill">
-                              Valid till: {record.validateTill}
+                            <span className={`badge bg-${validity.color} rounded-pill`}>
+                              {validity.isExpired ? "Expired" : `Valid till: ${validity.text}`}
                             </span>
                             {/* Download PDF button */}
                             <button
@@ -465,7 +485,8 @@ const PetCard = ({ pet, vaccinations, medicalRecords }) => {
                         )}
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
