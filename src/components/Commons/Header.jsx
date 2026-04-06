@@ -1,11 +1,31 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import "./Header.css";
-import { logout, isUserLoggedIn, isReceptionistUser } from "../../services/VeterinaryRegistrationService";
+import "./header.css";
+import {
+  logout,
+  isUserLoggedIn,
+  getLoggedInDisplayName,
+  getUserRole,
+} from "../../services/VeterinaryRegistrationService";
 
 const Header = () => {
   const isAuth = isUserLoggedIn();
+  const loggedInUser = getLoggedInDisplayName();
+  const userRole = getUserRole();
   const navigate = useNavigate();
+
+  const formatRole = (role) => {
+    if (!role) {
+      return "User";
+    }
+
+    return role
+      .replace("ROLE_", "")
+      .toLowerCase()
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
 
   const handleLogout = () => {
     logout();
@@ -90,6 +110,23 @@ const Header = () => {
                   <Link className="nav-link" to="/book-appointment">
                     📅 Book Appointment
                   </Link>
+                </li>
+              )}
+
+              {isAuth && (
+                <li className="nav-item">
+                  <div className="logged-user-chip" title={`Logged in as ${loggedInUser || "User"}`}>
+                    <div className="logged-user-avatar">
+                      {(loggedInUser || "U").charAt(0).toUpperCase()}
+                    </div>
+                    <div className="logged-user-info">
+                      <span className="logged-user-label">Logged in</span>
+                      <span className="logged-user-name">
+                        {loggedInUser || "User"}
+                        <small className="logged-user-role"> ({formatRole(userRole)})</small>
+                      </span>
+                    </div>
+                  </div>
                 </li>
               )}
 

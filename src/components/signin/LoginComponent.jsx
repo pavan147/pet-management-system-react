@@ -23,9 +23,10 @@ const LoginComponent = () => {
 
             const token = 'Bearer ' + response.data.accessToken;
             const role = response.data.role;
+            const displayName = (response.data.name || '').trim() || username;
 
             storeToken(token);
-            saveLoggedInUser(username, role);
+            saveLoggedInUser(displayName, role);
             navigator("/");
             window.location.reload(false);
         } catch (error) {
