@@ -1,0 +1,55 @@
+.marketplace-page {
+  max-width: 1280px;
+}
+
+.marketplace-hero {
+  background: linear-gradient(135deg, #0b4f6c 0%, #01a7c2 48%, #ffd166 100%);
+}
+
+.marketplace-tag {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  opacity: 0.9;
+}
+
+.marketplace-subtext {
+  max-width: 720px;
+  opacity: 0.95;
+}
+
+.marketplace-note {
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+  padding: 0.75rem 0.9rem;
+  backdrop-filter: blur(4px);
+}
+
+.marketplace-search {
+  min-width: 260px;
+}
+
+.marketplace-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.marketplace-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.12) !important;
+}
+
+.marketplace-img {
+  height: 220px;
+  object-fit: cover;
+}
+
+@media (max-width: 576px) {
+  .marketplace-search {
+    min-width: 100%;
+  }
+
+  .marketplace-img {
+    height: 190px;
+  }
+}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { getDashboardData, downloadPrescriptionPdf } from "../../services/PetService";
 import {
   getOtpReadyPhoneNumber,
@@ -718,6 +719,18 @@ const PetDashboard = () => {
 
         {/* Main Content - Right Side */}
         <div className="col-lg-9">
+          <div className="card border-0 shadow-sm mb-4" style={{ background: "linear-gradient(120deg, #f0f8ff 0%, #e6fff4 100%)" }}>
+            <div className="card-body d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+              <div>
+                <h5 className="fw-bold mb-1">🛍️ Pet Marketplace</h5>
+                <p className="text-muted mb-0">Explore accessories with sample prices and purchase them when you visit the hospital.</p>
+              </div>
+              <Link to="/pet-marketplace" className="btn btn-primary">
+                Browse Marketplace
+              </Link>
+            </div>
+          </div>
+
           {/* Owner Info */}
           <OwnerCard owner={owner} onPhoneVerified={fetchDashboardData} />
 

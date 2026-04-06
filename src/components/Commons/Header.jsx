@@ -108,11 +108,18 @@ const Header = () => {
                     </li>
                   )}
                   {isPetOwner && (
-                    <li className="nav-item">
-                      <Link className="nav-link" to="/book-appointment">
-                        📅 Book Appointment
-                      </Link>
-                    </li>
+                    <>
+                      <li className="nav-item">
+                        <Link className="nav-link" to="/pet-marketplace">
+                          🛍️ Marketplace
+                        </Link>
+                      </li>
+                      <li className="nav-item">
+                        <Link className="nav-link" to="/book-appointment">
+                          📅 Book Appointment
+                        </Link>
+                      </li>
+                    </>
                   )}
                 </>
               )}

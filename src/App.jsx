@@ -16,6 +16,7 @@ import ReceptionistQueue from "./components/Views/ReceptionistQueue";
 import ReceptionistDashboard from "./components/Views/ReceptionistDashboard";
 import LoginComponent from "./components/signin/LoginComponent";
 import SuccessPage from "./components/Views/SuccessPage";
+import PetMarketplace from "./components/Views/PetMarketplace";
 import {
   isUserLoggedIn,
   getDefaultDashboardPath,
@@ -80,6 +81,7 @@ function App() {
              
              {/* Appointment Routes */}
               <Route path="/book-appointment" element={<AuthenticatedRoute><DoctorAppointmentForm /></AuthenticatedRoute>} /> 
+              <Route path="/pet-marketplace" element={<AuthenticatedRoute><PetMarketplace /></AuthenticatedRoute>} />
               
               {/* Protected Routes - User must be logged in */ }
               <Route path="/SuccessPage" element={<AuthenticatedRoute><SuccessPage /></AuthenticatedRoute>} />
