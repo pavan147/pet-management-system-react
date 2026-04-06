@@ -110,6 +110,11 @@ const Header = () => {
                   {isPetOwner && (
                     <>
                       <li className="nav-item">
+                        <Link className="nav-link" to="/community">
+                          💬 Community
+                        </Link>
+                      </li>
+                      <li className="nav-item">
                         <Link className="nav-link" to="/pet-marketplace">
                           🛍️ Marketplace
                         </Link>
@@ -120,6 +125,13 @@ const Header = () => {
                         </Link>
                       </li>
                     </>
+                  )}
+                  {!isPetOwner && (
+                    <li className="nav-item">
+                      <Link className="nav-link" to="/community">
+                        💬 Community
+                      </Link>
+                    </li>
                   )}
                 </>
               )}

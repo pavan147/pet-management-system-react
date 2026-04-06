@@ -1,0 +1,70 @@
+.community-page {
+  min-height: 72vh;
+}
+
+.community-hero {
+  background: linear-gradient(120deg, #f3f6ff 0%, #edf7ff 100%);
+}
+
+.community-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 1050;
+}
+
+.community-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.community-drawer {
+  position: fixed;
+  top: 0;
+  right: -560px;
+  width: min(560px, 100vw);
+  height: 100vh;
+  background: #fff;
+  z-index: 1060;
+  padding: 1rem;
+  box-shadow: -8px 0 20px rgba(0, 0, 0, 0.12);
+  overflow-y: auto;
+  transition: right 0.22s ease;
+}
+
+.community-drawer.show {
+  right: 0;
+}
+
+.community-comments {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.comment-item {
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 0.65rem;
+  margin-bottom: 0.6rem;
+}
+
+.community-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 1080;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.community-modal {
+  width: min(840px, 96vw);
+  max-height: 92vh;
+  overflow-y: auto;
+}
+

@@ -24,6 +24,7 @@ import {
 } from "./services/VeterinaryRegistrationService";
 import PetDashboard from "./components/Views/dashboard";
 import DoctorDashboard from "./components/Views/DoctorDashboard";
+import CommunityPage from "./components/Community/CommunityPage";
 
 // Role-based home page routing
 function RoleBasedHome() {
@@ -82,6 +83,8 @@ function App() {
              {/* Appointment Routes */}
               <Route path="/book-appointment" element={<AuthenticatedRoute><DoctorAppointmentForm /></AuthenticatedRoute>} /> 
               <Route path="/pet-marketplace" element={<AuthenticatedRoute><PetMarketplace /></AuthenticatedRoute>} />
+              <Route path="/community" element={<AuthenticatedRoute><CommunityPage /></AuthenticatedRoute>} />
+              <Route path="/community/lost-pets" element={<AuthenticatedRoute><CommunityPage lostPetsOnly /></AuthenticatedRoute>} />
               
               {/* Protected Routes - User must be logged in */ }
               <Route path="/SuccessPage" element={<AuthenticatedRoute><SuccessPage /></AuthenticatedRoute>} />
