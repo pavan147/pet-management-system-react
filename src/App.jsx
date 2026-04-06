@@ -22,6 +22,7 @@ import PetDashboard from "./components/Views/dashboard";
 import DoctorDashboard from "./components/Views/DoctorDashboard";
 import CommunityPage from "./components/Community/CommunityPage";
 import PetMedicalChatPage from "./components/Views/PetMedicalChatPage";
+import PetMedicalChatThreadPage from "./components/Views/PetMedicalChatThreadPage";
 
 // Role-based home page routing
 function RoleBasedHome() {
@@ -70,6 +71,7 @@ function App() {
                <Route path="/community" element={<CommunityPage />} />
                <Route path="/community/lost-pets" element={<CommunityPage lostPetsOnly />} />
                <Route path="/pet-medical-chat/:petId" element={<PetMedicalChatPage />} />
+               <Route path="/medical-chat/thread/:threadId" element={<PetMedicalChatThreadPage />} />
                <Route path="/SuccessPage" element={<SuccessPage />} />
                <Route path="/test" element={<SuccessMessage status="owner" />} />
 

@@ -145,10 +145,15 @@ export const getMedicalChatThread = async (petId) => {
   return response.data;
 };
 
-export const searchMedicalChatPets = async (query) => {
+export const searchMedicalChatPets = async (query, status = "ACTIVE") => {
   const response = await axios.get(`${BASE_URL}/medical-chat/search`, {
-    params: { query },
+    params: { query, status },
   });
+  return response.data;
+};
+
+export const closeMedicalChat = async (petId) => {
+  const response = await axios.put(`${BASE_URL}/medical-chat/${petId}/close`);
   return response.data;
 };
 
@@ -184,6 +189,49 @@ export const getMedicalChatImageBlob = async (imageId) => {
 
 export const getEmergencyMedicalFeed = async () => {
   const response = await axios.get(`${BASE_URL}/medical-chat/emergency-feed`);
+  return response.data;
+};
+
+// ---- Thread-based API ----
+
+export const getThreadsForPet = async (petId) => {
+  const response = await axios.get(`${BASE_URL}/${petId}/medical-chat/threads`);
+  return response.data;
+};
+
+export const createMedicalChatThread = async (petId, title) => {
+  const response = await axios.post(`${BASE_URL}/${petId}/medical-chat/threads`, { title });
+  return response.data;
+};
+
+export const getMedicalChatThreadById = async (threadId) => {
+  const response = await axios.get(`${BASE_URL}/medical-chat/threads/${threadId}`);
+  return response.data;
+};
+
+export const closeMedicalChatThread = async (threadId) => {
+  const response = await axios.put(`${BASE_URL}/medical-chat/threads/${threadId}/close`);
+  return response.data;
+};
+
+export const sendMessageToThread = async (threadId, payload) => {
+  const response = await axios.post(`${BASE_URL}/medical-chat/threads/${threadId}/messages`, payload, {
+    headers: { "Content-Type": "application/json" },
+  });
+  return response.data;
+};
+
+export const uploadImagesToThread = async (threadId, files, message, emergency) => {
+  const formData = new FormData();
+  files.forEach((file) => formData.append("files", file));
+  if (message) {
+    formData.append("message", message);
+  }
+  formData.append("emergency", `${Boolean(emergency)}`);
+
+  const response = await axios.post(`${BASE_URL}/medical-chat/threads/${threadId}/images`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
   return response.data;
 };
 

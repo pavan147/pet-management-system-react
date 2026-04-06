@@ -65,6 +65,7 @@ const DoctorDashboard = () => {
   const [appointments, setAppointments] = useState([]);
   const [emergencyFeed, setEmergencyFeed] = useState([]);
   const [chatSearchQuery, setChatSearchQuery] = useState("");
+  const [chatCaseFilter, setChatCaseFilter] = useState("ACTIVE");
   const [chatPets, setChatPets] = useState([]);
   const [emergencyImagePreviews, setEmergencyImagePreviews] = useState({});
   const [loading, setLoading] = useState(true);
@@ -90,7 +91,7 @@ const DoctorDashboard = () => {
   const todayDate = getTodayDate();
 
   useEffect(() => {
-    Promise.all([fetchAppointments(todayDate), getEmergencyMedicalFeed(), searchMedicalChatPets("")])
+    Promise.all([fetchAppointments(todayDate), getEmergencyMedicalFeed(), searchMedicalChatPets("", chatCaseFilter)])
       .then(([appointmentRes, emergencyRes, chatSearchRes]) => {
         setAppointments(appointmentRes.data || []);
         setEmergencyFeed(emergencyRes || []);
@@ -106,13 +107,13 @@ const DoctorDashboard = () => {
         setLoading(false);
         setChatSearchLoading(false);
       });
-  }, [todayDate]);
+  }, [todayDate, chatCaseFilter]);
 
   const handleSearchMedicalChats = async (event) => {
     event?.preventDefault();
     try {
       setChatSearchLoading(true);
-      const results = await searchMedicalChatPets(chatSearchQuery);
+      const results = await searchMedicalChatPets(chatSearchQuery, chatCaseFilter);
       setChatPets(results || []);
     } catch (error) {
       console.error("Error searching medical chat pets:", error);
@@ -274,8 +275,31 @@ const DoctorDashboard = () => {
                 Search
               </button>
             </form>
+            <div className="btn-group btn-group-sm mb-3" role="group" aria-label="Medical case filter">
+              <button
+                type="button"
+                className={`btn ${chatCaseFilter === "ACTIVE" ? "btn-primary" : "btn-outline-primary"}`}
+                onClick={() => setChatCaseFilter("ACTIVE")}
+              >
+                Active Cases
+              </button>
+              <button
+                type="button"
+                className={`btn ${chatCaseFilter === "HISTORY" ? "btn-secondary" : "btn-outline-secondary"}`}
+                onClick={() => setChatCaseFilter("HISTORY")}
+              >
+                History
+              </button>
+              <button
+                type="button"
+                className={`btn ${chatCaseFilter === "ALL" ? "btn-dark" : "btn-outline-dark"}`}
+                onClick={() => setChatCaseFilter("ALL")}
+              >
+                All
+              </button>
+            </div>
             <small className="text-muted d-block mb-3">
-              Search any pet medical chat by pet name, owner name, phone number, or pet ID. Emergency cases are highlighted first.
+              Search any pet medical chat by pet name, owner name, phone number, or pet ID. Closed cases move to History.
             </small>
 
             {chatSearchLoading ? (
@@ -290,6 +314,7 @@ const DoctorDashboard = () => {
                       <div className="fw-semibold">{item.petName} (#{item.petId})</div>
                       <div className="d-flex gap-1 flex-wrap">
                         {item.emergency && <span className="badge text-bg-danger">Emergency</span>}
+                        {item.chatStatus === "CLOSED" && <span className="badge text-bg-secondary">Closed</span>}
                         <span className="badge text-bg-light">Chat Case</span>
                       </div>
                     </div>
@@ -298,6 +323,9 @@ const DoctorDashboard = () => {
                     <small className="text-muted d-block">Latest: {item.latestMessage || "No text message"}</small>
                     {item.latestMessageAt && (
                       <small className="text-muted d-block">Updated: {formatDisplayDate(item.latestMessageAt)}</small>
+                    )}
+                    {item.closedAt && (
+                      <small className="text-muted d-block">Closed on: {formatDisplayDate(item.closedAt)} by {item.closedByName || "owner"}</small>
                     )}
 
                     {item.emergencyDetails?.images?.length > 0 && (
