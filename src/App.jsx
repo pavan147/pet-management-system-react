@@ -17,6 +17,7 @@ import {
   isUserLoggedIn,
   getDefaultDashboardPath,
   isPetOwnerUser,
+  isDoctorUser,
 } from "./services/VeterinaryRegistrationService";
 import PetDashboard from "./components/Views/PetOwnerDashboard";
 import DoctorDashboard from "./components/Views/DoctorDashboard";
@@ -24,6 +25,7 @@ import CommunityPage from "./components/Community/CommunityPage";
 import PetMedicalChatPage from "./components/Views/PetMedicalChatPage";
 import PetMedicalChatThreadPage from "./components/Views/PetMedicalChatThreadPage";
 import PetLabTestReviewPage from "./components/Views/PetLabTestReviewPage";
+import DoctorPetDiagnosisPage from "./components/Views/DoctorPetDiagnosisPage";
 
 // Role-based home page routing
 function RoleBasedHome() {
@@ -40,6 +42,18 @@ function RequireNonPetOwner() {
   }
 
   if (isPetOwnerUser()) {
+    return <Navigate to={getDefaultDashboardPath()} replace />;
+  }
+
+  return <Outlet />;
+}
+
+function RequireDoctor() {
+  if (!isUserLoggedIn()) {
+    return <Navigate to="/login" />;
+  }
+
+  if (!isDoctorUser()) {
     return <Navigate to={getDefaultDashboardPath()} replace />;
   }
 
@@ -85,6 +99,10 @@ function App() {
                  <Route path="/pet-medical" element={<PetMedicalHistoryForm />} />
                  <Route path="/view-appointment" element={<ReceptionistQueue />} />
                  <Route path="/register" element={<OwnerRegistrationForm />} />
+               </Route>
+
+               <Route element={<RequireDoctor />}>
+                 <Route path="/doctor/pet-diagnosis" element={<DoctorPetDiagnosisPage />} />
                </Route>
              </Route>
            </Routes>

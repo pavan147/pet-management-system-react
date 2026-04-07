@@ -84,6 +84,23 @@ export const savePetMedicalRecord = async (formData) => {
 
 };
 
+export const searchDoctorPets = async (query) => {
+  const response = await axios.get(`${BASE_URL}/doctor/search`, { params: { query } });
+  return response.data;
+};
+
+export const getDoctorPetHistory = async (petId) => {
+  const response = await axios.get(`${BASE_URL}/doctor/${petId}/history`);
+  return response.data;
+};
+
+export const createDoctorDiagnosis = async (petId, payload) => {
+  const response = await axios.post(`${BASE_URL}/doctor/${petId}/diagnosis`, payload, {
+    headers: { "Content-Type": "application/json" },
+  });
+  return response.data;
+};
+
 
 export const saveAppointment = async (formData) => {
 

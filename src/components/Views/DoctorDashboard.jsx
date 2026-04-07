@@ -474,7 +474,7 @@ const DoctorDashboard = () => {
             <div className="doctor-panel-header">
               <h3>Quick Actions</h3>
             </div>
-            <button className="btn btn-primary w-100">Create Prescription</button>
+            <Link className="btn btn-primary w-100" to="/doctor/pet-diagnosis">Create Diagnosis From History</Link>
             <button className="btn btn-outline-primary w-100">Add Treatment Note</button>
             <button className="btn btn-outline-secondary w-100">Request Lab Test</button>
           </article>
