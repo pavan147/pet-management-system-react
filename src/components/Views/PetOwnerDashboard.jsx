@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { getDashboardData, downloadPrescriptionPdf } from "../../services/PetService";
+import {
+  getDashboardData,
+  downloadPrescriptionPdf,
+  uploadLabTestReport,
+  downloadLabTestReport,
+} from "../../services/PetService";
 import {
   getOtpReadyPhoneNumber,
   isValidMobileNumber,
@@ -19,8 +24,7 @@ const getDaysRemaining = (validTillDate) => {
   const today = new Date();
   const expiry = new Date(validTillDate);
   const diffTime = expiry - today;
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays;
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 };
 
 // Utility function to get vaccination status badge
@@ -50,6 +54,29 @@ const getPrescriptionValidity = (validTillDate) => {
   }
 
   return { isExpired: false, text: validTillDate, color: "success" };
+};
+
+const getLabReportStatusMeta = (status) => {
+  const statusMap = {
+    PENDING_REVIEW: { className: "text-bg-warning", label: "Pending Review" },
+    REVIEWED: { className: "text-bg-info", label: "Reviewed" },
+    PRESCRIPTION_SHARED: { className: "text-bg-success", label: "Prescription Shared" },
+  };
+  return statusMap[status] || { className: "text-bg-secondary", label: status || "Unknown" };
+};
+
+const formatBytes = (bytes) => {
+  if (!bytes) {
+    return "0 B";
+  }
+  const units = ["B", "KB", "MB", "GB"];
+  let value = bytes;
+  let unitIndex = 0;
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex += 1;
+  }
+  return `${value.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
 };
 
 // Utility function to convert base64 to image data URL
@@ -411,10 +438,18 @@ const AlertsNotifications = ({ vaccinations, medicalRecords, pets }) => {
 };
 
 // Pet Info Card Component
-const PetCard = ({ pet, vaccinations, medicalRecords }) => {
+const PetCard = ({ pet, vaccinations, medicalRecords, labReports, onDataChanged }) => {
   const [activeTab, setActiveTab] = useState("info");
   const [downloadingId, setDownloadingId] = useState(null);
   const [downloadError, setDownloadError] = useState(null);
+  const [labFile, setLabFile] = useState(null);
+  const [labTitle, setLabTitle] = useState("");
+  const [labTestType, setLabTestType] = useState("Blood Test");
+  const [labNotes, setLabNotes] = useState("");
+  const [uploadingLabReport, setUploadingLabReport] = useState(false);
+  const [labActionMessage, setLabActionMessage] = useState(null);
+  const [medicalNavigationMessage, setMedicalNavigationMessage] = useState(null);
+  const [highlightedMedicalRecordId, setHighlightedMedicalRecordId] = useState(null);
 
   const handleDownloadPdf = async (petId, petMedicalId, diagnosis) => {
     setDownloadingId(petMedicalId);
@@ -427,6 +462,80 @@ const PetCard = ({ pet, vaccinations, medicalRecords }) => {
     } finally {
       setDownloadingId(null);
     }
+  };
+
+  const handleLabUpload = async () => {
+    if (!labFile) {
+      setLabActionMessage({ type: "danger", text: "Please choose a PDF or image report first." });
+      return;
+    }
+
+    try {
+      setUploadingLabReport(true);
+      setLabActionMessage(null);
+      await uploadLabTestReport(pet.id, {
+        file: labFile,
+        title: labTitle || `${labTestType || "Lab Test"} Report`,
+        labTestType,
+        ownerNotes: labNotes,
+      });
+      setLabFile(null);
+      setLabTitle("");
+      setLabTestType("Blood Test");
+      setLabNotes("");
+      setLabActionMessage({ type: "success", text: "Lab report uploaded successfully. Doctor will review it soon." });
+      if (onDataChanged) {
+        await onDataChanged();
+      }
+    } catch (error) {
+      setLabActionMessage({
+        type: "danger",
+        text: error.response?.data?.error || "Failed to upload lab report. Please try again.",
+      });
+    } finally {
+      setUploadingLabReport(false);
+      const input = document.getElementById(`lab-report-file-${pet.id}`);
+      if (input) {
+        input.value = "";
+      }
+    }
+  };
+
+  const handleLabReportDownload = async (labReportId) => {
+    try {
+      setDownloadError(null);
+      await downloadLabTestReport(labReportId);
+    } catch (error) {
+      setDownloadError(error.response?.data?.error || "Failed to download the lab report.");
+    }
+  };
+
+  const handleOpenFollowUpMedicalRecord = (followUpMedicalRecordId) => {
+    if (!followUpMedicalRecordId) {
+      return;
+    }
+
+    const exists = medicalRecords.some((record) => record.petMedicalId === followUpMedicalRecordId);
+    if (!exists) {
+      setMedicalNavigationMessage("Follow-up prescription is created, but record is not visible yet. Please refresh once.");
+      return;
+    }
+
+    setMedicalNavigationMessage(null);
+    setActiveTab("medical");
+    setHighlightedMedicalRecordId(followUpMedicalRecordId);
+
+    window.setTimeout(() => {
+      const elementId = `medical-record-${pet.id}-${followUpMedicalRecordId}`;
+      const target = document.getElementById(elementId);
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 120);
+
+    window.setTimeout(() => {
+      setHighlightedMedicalRecordId(null);
+    }, 2600);
   };
 
   return (
@@ -486,6 +595,14 @@ const PetCard = ({ pet, vaccinations, medicalRecords }) => {
               onClick={() => setActiveTab("medical")}
             >
               🏥 Medical Records ({medicalRecords.length})
+            </button>
+          </li>
+          <li className="nav-item">
+            <button
+              className={`nav-link ${activeTab === "labReports" ? "active" : ""}`}
+              onClick={() => setActiveTab("labReports")}
+            >
+              🧪 Lab Reports ({labReports.length})
             </button>
           </li>
         </ul>
@@ -551,6 +668,9 @@ const PetCard = ({ pet, vaccinations, medicalRecords }) => {
 
           {activeTab === "medical" && (
             <div className="py-2">
+              {medicalNavigationMessage && (
+                <div className="alert alert-info py-2 mb-3">{medicalNavigationMessage}</div>
+              )}
               {downloadError && (
                 <div className="alert alert-danger alert-dismissible fade show py-2 mb-3" role="alert">
                   <i className="bi bi-exclamation-triangle-fill me-2"></i>
@@ -570,7 +690,15 @@ const PetCard = ({ pet, vaccinations, medicalRecords }) => {
                   {medicalRecords.map((record, idx) => {
                     const validity = getPrescriptionValidity(record.validateTill);
                     return (
-                    <div key={idx} className="card border-0 shadow-sm mb-3" style={{ borderLeft: "4px solid #6c63ff" }}>
+                    <div
+                      key={record.petMedicalId || idx}
+                      id={`medical-record-${pet.id}-${record.petMedicalId}`}
+                      className="card border-0 shadow-sm mb-3"
+                      style={{
+                        borderLeft: highlightedMedicalRecordId === record.petMedicalId ? "4px solid #198754" : "4px solid #6c63ff",
+                        boxShadow: highlightedMedicalRecordId === record.petMedicalId ? "0 0 0 0.18rem rgba(25, 135, 84, 0.22)" : undefined,
+                      }}
+                    >
                       <div className="card-body">
                         {/* Header row */}
                         <div className="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2">
@@ -647,6 +775,128 @@ const PetCard = ({ pet, vaccinations, medicalRecords }) => {
               )}
             </div>
           )}
+
+          {activeTab === "labReports" && (
+            <div className="py-2">
+              <div className="card border-0 bg-light mb-3">
+                <div className="card-body">
+                  <div className="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-2">
+                    <h6 className="fw-bold mb-0">Upload New Lab Report</h6>
+                    <span className="badge text-bg-light border">PDF / JPG / PNG • max 10MB</span>
+                  </div>
+                  <p className="text-muted small mb-3">
+                    Upload blood test or lab reports here so the doctor can review remotely and send follow-up medicine.
+                  </p>
+                  {labActionMessage && (
+                    <div className={`alert alert-${labActionMessage.type} py-2 mb-3`}>
+                      {labActionMessage.text}
+                    </div>
+                  )}
+                  <div className="row g-3">
+                    <div className="col-md-4">
+                      <input
+                        className="form-control"
+                        value={labTitle}
+                        onChange={(event) => setLabTitle(event.target.value)}
+                        placeholder="Report title"
+                      />
+                    </div>
+                    <div className="col-md-3">
+                      <input
+                        className="form-control"
+                        value={labTestType}
+                        onChange={(event) => setLabTestType(event.target.value)}
+                        placeholder="Blood Test / CBC / X-ray"
+                      />
+                    </div>
+                    <div className="col-md-5">
+                      <input
+                        id={`lab-report-file-${pet.id}`}
+                        type="file"
+                        className="form-control"
+                        accept="application/pdf,image/png,image/jpeg"
+                        onChange={(event) => setLabFile(event.target.files?.[0] || null)}
+                      />
+                    </div>
+                    <div className="col-12">
+                      <textarea
+                        className="form-control"
+                        rows="2"
+                        value={labNotes}
+                        onChange={(event) => setLabNotes(event.target.value)}
+                        placeholder="Optional notes for the doctor: symptoms, date of test, current condition"
+                      />
+                    </div>
+                    <div className="col-12 d-flex justify-content-end">
+                      <button className="btn btn-primary" type="button" onClick={handleLabUpload} disabled={uploadingLabReport}>
+                        {uploadingLabReport ? "Uploading..." : "Upload Report"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {labReports.length === 0 ? (
+                <div className="alert alert-info mb-0">No lab reports uploaded for this pet yet.</div>
+              ) : (
+                <div style={{ maxHeight: "480px", overflowY: "auto" }}>
+                  {labReports.map((report) => {
+                    const statusMeta = getLabReportStatusMeta(report.status);
+                    return (
+                      <div key={report.id} className="card border-0 shadow-sm mb-3" style={{ borderLeft: "4px solid #14b8a6" }}>
+                        <div className="card-body">
+                          <div className="d-flex justify-content-between align-items-start gap-2 flex-wrap mb-2">
+                            <div>
+                              <h6 className="fw-bold mb-1">{report.title}</h6>
+                              <small className="text-muted">
+                                {report.labTestType || "General lab report"} • Uploaded {report.uploadedAt || "-"}
+                              </small>
+                            </div>
+                            <span className={`badge ${statusMeta.className}`}>{statusMeta.label}</span>
+                          </div>
+
+                          <div className="small text-muted mb-2">
+                            <div>File: {report.originalFileName}</div>
+                            <div>Size: {formatBytes(report.sizeBytes)}</div>
+                            {report.reviewedByName && <div>Reviewed by: Dr. {report.reviewedByName}</div>}
+                          </div>
+
+                          {report.ownerNotes && (
+                            <p className="mb-2"><strong>Owner Notes:</strong> {report.ownerNotes}</p>
+                          )}
+                          {report.reviewSummary && (
+                            <p className="mb-2"><strong>Doctor Summary:</strong> {report.reviewSummary}</p>
+                          )}
+                          {report.doctorReviewNotes && (
+                            <p className="mb-2"><strong>Doctor Notes:</strong> {report.doctorReviewNotes}</p>
+                          )}
+                          {report.recommendedFollowUpDate && (
+                            <p className="mb-2"><strong>Follow-up Date:</strong> {report.recommendedFollowUpDate}</p>
+                          )}
+                          {report.followUpMedicalRecordId && (
+                            <div className="alert alert-success py-2 small mb-2">
+                              A follow-up prescription has been created and added to medical records.
+                              <button
+                                className="btn btn-sm btn-success ms-2"
+                                type="button"
+                                onClick={() => handleOpenFollowUpMedicalRecord(report.followUpMedicalRecordId)}
+                              >
+                                View Follow-up Prescription
+                              </button>
+                            </div>
+                          )}
+
+                          <button className="btn btn-sm btn-outline-primary" type="button" onClick={() => handleLabReportDownload(report.id)}>
+                            Download Report
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -706,7 +956,7 @@ const PetDashboard = () => {
     );
   }
 
-  const { owner, pets, vaccinations, medicalRecords, appointments } = dashboardData;
+  const { owner, pets, vaccinations, medicalRecords, appointments, labTestReports = [] } = dashboardData;
 
   return (
     <div className="container-fluid mt-4 pb-5">
@@ -751,12 +1001,15 @@ const PetDashboard = () => {
                 pets.map((pet) => {
                   const petVaccinations = vaccinations.filter((v) => v.petId === pet.id);
                   const petRecords = medicalRecords.filter((r) => r.petId === pet.id);
+                  const petLabReports = labTestReports.filter((report) => report.petId === pet.id);
                   return (
                     <div key={pet.id} className="col-12">
                       <PetCard
                         pet={pet}
                         vaccinations={petVaccinations}
                         medicalRecords={petRecords}
+                        labReports={petLabReports}
+                        onDataChanged={fetchDashboardData}
                       />
                     </div>
                   );

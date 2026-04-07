@@ -140,6 +140,82 @@ export const downloadPrescriptionPdf = async (petId, petMedicalId) => {
   window.URL.revokeObjectURL(url);
 };
 
+const downloadBlobResponse = (response, fallbackFileName, fallbackType) => {
+  const contentDisposition = response.headers["content-disposition"];
+  let fileName = fallbackFileName;
+  if (contentDisposition) {
+    const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+    if (match && match[1]) {
+      fileName = match[1].replace(/['"]/g, "");
+    }
+  }
+
+  const blob = new Blob([response.data], { type: response.headers["content-type"] || fallbackType });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", fileName);
+  document.body.appendChild(link);
+  link.click();
+  link.parentNode.removeChild(link);
+  window.URL.revokeObjectURL(url);
+};
+
+export const uploadLabTestReport = async (petId, payload) => {
+  const formData = new FormData();
+  formData.append("file", payload.file);
+  formData.append("title", payload.title);
+  if (payload.labTestType) {
+    formData.append("labTestType", payload.labTestType);
+  }
+  if (payload.ownerNotes) {
+    formData.append("ownerNotes", payload.ownerNotes);
+  }
+
+  const response = await axios.post(`${BASE_URL}/${petId}/lab-tests`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return response.data;
+};
+
+export const getPetLabTestReports = async (petId) => {
+  const response = await axios.get(`${BASE_URL}/${petId}/lab-tests`);
+  return response.data;
+};
+
+export const searchLabTestReports = async (query, status = "PENDING") => {
+  const response = await axios.get(`${BASE_URL}/lab-tests/search`, {
+    params: { query, status },
+  });
+  return response.data;
+};
+
+export const getLabTestReportDetails = async (labTestReportId) => {
+  const response = await axios.get(`${BASE_URL}/lab-tests/${labTestReportId}`);
+  return response.data;
+};
+
+export const reviewLabTestReport = async (labTestReportId, payload) => {
+  const response = await axios.post(`${BASE_URL}/lab-tests/${labTestReportId}/review`, payload, {
+    headers: { "Content-Type": "application/json" },
+  });
+  return response.data;
+};
+
+export const getLabTestReportBlob = async (labTestReportId) => {
+  const response = await axios.get(`${BASE_URL}/lab-tests/${labTestReportId}/download`, {
+    responseType: "blob",
+  });
+  return response.data;
+};
+
+export const downloadLabTestReport = async (labTestReportId) => {
+  const response = await axios.get(`${BASE_URL}/lab-tests/${labTestReportId}/download`, {
+    responseType: "blob",
+  });
+  downloadBlobResponse(response, `lab-report-${labTestReportId}`, "application/octet-stream");
+};
+
 export const getMedicalChatThread = async (petId) => {
   const response = await axios.get(`${BASE_URL}/medical-chat/${petId}`);
   return response.data;

@@ -2,9 +2,11 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { getLoggedInUser } from "../../services/VeterinaryRegistrationService";
 import {
+  downloadLabTestReport,
   fetchAppointments,
   getEmergencyMedicalFeed,
   getMedicalChatImageBlob,
+  searchLabTestReports,
   searchMedicalChatPets,
 } from "../../services/PetService";
 import "./DoctorDashboard.css";
@@ -67,9 +69,12 @@ const DoctorDashboard = () => {
   const [chatSearchQuery, setChatSearchQuery] = useState("");
   const [chatCaseFilter, setChatCaseFilter] = useState("ACTIVE");
   const [chatPets, setChatPets] = useState([]);
+  const [labReports, setLabReports] = useState([]);
+  const [labReportFilter, setLabReportFilter] = useState("PENDING");
   const [emergencyImagePreviews, setEmergencyImagePreviews] = useState({});
   const [loading, setLoading] = useState(true);
   const [chatSearchLoading, setChatSearchLoading] = useState(true);
+  const [labReportLoading, setLabReportLoading] = useState(true);
   const imagePreviewUrlRef = useRef([]);
 
   const visibleMedicalCases = useMemo(() => {
@@ -91,23 +96,32 @@ const DoctorDashboard = () => {
   const todayDate = getTodayDate();
 
   useEffect(() => {
-    Promise.all([fetchAppointments(todayDate), getEmergencyMedicalFeed(), searchMedicalChatPets("", chatCaseFilter)])
-      .then(([appointmentRes, emergencyRes, chatSearchRes]) => {
+    Promise.all([
+      fetchAppointments(todayDate),
+      getEmergencyMedicalFeed(),
+      searchMedicalChatPets("", chatCaseFilter),
+      searchLabTestReports("", labReportFilter),
+    ])
+      .then(([appointmentRes, emergencyRes, chatSearchRes, labReportRes]) => {
         setAppointments(appointmentRes.data || []);
         setEmergencyFeed(emergencyRes || []);
         setChatPets(chatSearchRes || []);
+        setLabReports(labReportRes || []);
         setLoading(false);
         setChatSearchLoading(false);
+        setLabReportLoading(false);
       })
       .catch((err) => {
         console.error("Error fetching doctor queue:", err);
         setAppointments([]);
         setEmergencyFeed([]);
         setChatPets([]);
+        setLabReports([]);
         setLoading(false);
         setChatSearchLoading(false);
+        setLabReportLoading(false);
       });
-  }, [todayDate, chatCaseFilter]);
+  }, [todayDate, chatCaseFilter, labReportFilter]);
 
   const handleSearchMedicalChats = async (event) => {
     event?.preventDefault();
@@ -182,6 +196,14 @@ const DoctorDashboard = () => {
       { label: "Cases Completed", value: completed + followUps, icon: "✅", className: "doctor-stat-success" },
     ];
   }, [appointments]);
+
+  const taskItems = useMemo(() => {
+    const pendingReports = labReports.filter((item) => item.status === "PENDING_REVIEW").length;
+    return [
+      pendingReports > 0 ? `Review ${pendingReports} lab report${pendingReports > 1 ? "s" : ""}` : "No pending lab reports",
+      ...dummyTasks,
+    ];
+  }, [labReports]);
 
   const queueRows = useMemo(() => {
     return appointments.map((appointment, idx) => {
@@ -381,10 +403,71 @@ const DoctorDashboard = () => {
               <h3>Today's Tasks</h3>
             </div>
             <ul className="doctor-task-list">
-              {dummyTasks.map((task) => (
+              {taskItems.map((task) => (
                 <li key={task}>{task}</li>
               ))}
             </ul>
+          </article>
+
+          <article className="doctor-panel">
+            <div className="doctor-panel-header">
+              <h3>Lab Reports</h3>
+              <span className="doctor-panel-chip">{labReports.length}</span>
+            </div>
+
+            <div className="btn-group btn-group-sm mb-3" role="group" aria-label="Lab report filter">
+              <button
+                type="button"
+                className={`btn ${labReportFilter === "PENDING" ? "btn-warning" : "btn-outline-warning"}`}
+                onClick={() => setLabReportFilter("PENDING")}
+              >
+                Pending
+              </button>
+              <button
+                type="button"
+                className={`btn ${labReportFilter === "REVIEWED" ? "btn-info" : "btn-outline-info"}`}
+                onClick={() => setLabReportFilter("REVIEWED")}
+              >
+                Reviewed
+              </button>
+              <button
+                type="button"
+                className={`btn ${labReportFilter === "ALL" ? "btn-dark" : "btn-outline-dark"}`}
+                onClick={() => setLabReportFilter("ALL")}
+              >
+                All
+              </button>
+            </div>
+
+            {labReportLoading ? (
+              <div className="doctor-table-status">Loading lab reports...</div>
+            ) : labReports.length === 0 ? (
+              <div className="doctor-table-status">No lab reports available for this filter.</div>
+            ) : (
+              <div className="d-flex flex-column gap-2" style={{ maxHeight: "280px", overflowY: "auto" }}>
+                {labReports.slice(0, 8).map((report) => (
+                  <div key={report.id} className="border rounded p-2 bg-light">
+                    <div className="d-flex justify-content-between align-items-start gap-2 flex-wrap">
+                      <div className="fw-semibold">{report.title}</div>
+                      <span className={`badge ${report.status === "PENDING_REVIEW" ? "text-bg-warning" : report.status === "PRESCRIPTION_SHARED" ? "text-bg-success" : "text-bg-info"}`}>
+                        {report.status}
+                      </span>
+                    </div>
+                    <small className="text-muted d-block">{report.petName} #{report.petId} • {report.ownerName}</small>
+                    <small className="text-muted d-block">{report.labTestType || "General lab report"} • Uploaded {report.uploadedAt}</small>
+                    {report.reviewSummary && <small className="text-muted d-block">Summary: {report.reviewSummary}</small>}
+                    <div className="mt-2 d-flex gap-2 flex-wrap">
+                      <Link className="btn btn-sm btn-primary" to={`/lab-tests/${report.id}/review`}>
+                        Review Report
+                      </Link>
+                      <button className="btn btn-sm btn-outline-primary" type="button" onClick={() => downloadLabTestReport(report.id)}>
+                        Download
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </article>
 
           <article className="doctor-panel doctor-quick-actions">
