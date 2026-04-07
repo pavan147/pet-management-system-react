@@ -18,7 +18,7 @@ import {
   getDefaultDashboardPath,
   isPetOwnerUser,
 } from "./services/VeterinaryRegistrationService";
-import PetDashboard from "./components/Views/dashboard";
+import PetDashboard from "./components/Views/PetOwnerDashboard";
 import DoctorDashboard from "./components/Views/DoctorDashboard";
 import CommunityPage from "./components/Community/CommunityPage";
 import PetMedicalChatPage from "./components/Views/PetMedicalChatPage";
