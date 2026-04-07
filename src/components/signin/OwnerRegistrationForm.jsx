@@ -5,7 +5,6 @@ import { searchOwnerDetailsByEmailOrPhone } from "../../services/OwnerService";
 import {
   getOtpReadyPhoneNumber,
   isValidMobileNumber,
-  normalizePhoneNumber,
   sendMobileOtp,
   verifyMobileOtp,
 } from "../../services/OtpService";
@@ -209,16 +208,25 @@ const OwnerRegistrationForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (emailExists) {
-      alert("Email already exists. Please use a different email.");
-      return;
-    }
 
     const normalizedPhoneNumber = getOtpReadyPhoneNumber(phone);
 
+    const clientErrors = {};
+
+    if (emailExists) {
+      clientErrors.email = "This email is already registered. Please use a different email.";
+    }
+
+    if (phoneNumberExists) {
+      clientErrors.phoneNumber = "This phone number is already registered. Please use a different number.";
+    }
+
     if (!isValidMobileNumber(phone)) {
-      alert("Please enter a valid 10-digit mobile number.");
+      clientErrors.phoneNumber = "Please enter a valid 10-digit mobile number.";
+    }
+
+    if (Object.keys(clientErrors).length > 0) {
+      setErrors(clientErrors);
       return;
     }
 
@@ -236,8 +244,13 @@ const OwnerRegistrationForm = () => {
       await submitForm(formData);
       setShowSuccess(true);
     } catch (error) {
-      if (error.response && error.response.data) {
-        setErrors(error.response.data);
+      if (error.response?.data) {
+        const apiErrors = error.response.data;
+        if (typeof apiErrors === "object") {
+          setErrors(apiErrors);
+        } else {
+          setErrors({ error: "Registration failed. Please try again." });
+        }
       } else {
         alert("Registration failed: " + error.message);
       }
@@ -268,6 +281,9 @@ const OwnerRegistrationForm = () => {
               </div>
 
               <form onSubmit={handleSubmit} className="appointment-simple-form">
+                  {errors.error && (
+                    <div className="alert alert-danger" role="alert">{errors.error}</div>
+                  )}
                 {/* Personal Information Section */}
                 <div className="form-section">
                   <h5 className="section-title">
